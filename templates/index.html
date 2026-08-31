@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Browse Items — MMU Lost & Found</title>
+    <style>
+        :root {
+            --color-accent: #003c71;
+            --color-accent-hover: #002850;
+            --color-border: #e2e5ea;
+            --color-muted: #6b7280;
+            --color-page-bg: #f1f3f6;
+            --color-card-bg: #ffffff;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            background: var(--color-page-bg);
+            color: #111827;
+        }
+
+        /* --- Navbar --- */
+        .navbar {
+            background: var(--color-accent);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar-brand {
+            color: white;
+            font-weight: 700;
+            font-size: 1.1rem;
+            text-decoration: none;
+        }
+        .navbar-links {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+        .btn-outline {
+            color: white;
+            border: 1px solid rgba(255,255,255,0.5);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .btn-outline:hover { background: rgba(255,255,255,0.12); }
+        .btn-white {
+            background: white;
+            color: var(--color-accent);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        /* --- Page container --- */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+        .page-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+
+        /* --- Filter bar --- */
+        .filter-bar {
+            background: var(--color-card-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 1rem;
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+        .filter-input, .filter-select {
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 0.6rem 0.8rem;
+            font-size: 0.9rem;
+            background: #fafafa;
+            flex: 1;
+            min-width: 150px;
+        }
+        .filter-input:focus, .filter-select:focus {
+            outline: none;
+            border-color: var(--color-accent);
+            background: white;
+        }
+        .filter-btn {
+            background: var(--color-accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.6rem 1.5rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        .filter-btn:hover { background: var(--color-accent-hover); }
+
+        /* --- Item grid --- */
+        .item-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.25rem;
+        }
+        .item-card {
+            background: var(--color-card-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            overflow: hidden;
+            text-decoration: none;
+            color: inherit;
+            transition: box-shadow 0.15s, transform 0.15s;
+        }
+        .item-card:hover {
+            box-shadow: 0 6px 20px rgba(0, 30, 60, 0.12);
+            transform: translateY(-2px);
+        }
+        .item-photo {
+            height: 170px;
+            background: #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-muted);
+            font-size: 0.85rem;
+        }
+        .item-body { padding: 1rem; }
+        .badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            padding: 0.25rem 0.6rem;
+            border-radius: 999px;
+            margin-bottom: 0.6rem;
+        }
+        .badge-lost { background: #fee2e2; color: #991b1b; }
+        .badge-found { background: #dcfce7; color: #166534; }
+        .item-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+        }
+        .item-meta {
+            font-size: 0.85rem;
+            color: var(--color-muted);
+            margin-bottom: 0.2rem;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="index.html" class="navbar-brand">MMU Lost &amp; Found</a>
+        <div class="navbar-links">
+            <a href="post-item.html" class="btn-outline">+ Post Item</a>
+            <a href="login.html" class="btn-white">Login</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-title">Lost &amp; Found Listings</div>
+
+        <form action="#" method="GET" class="filter-bar">
+            <input type="text" name="keyword" class="filter-input" placeholder="Search by keyword...">
+
+            <select name="category" class="filter-select">
+                <option value="">All Categories</option>
+                <option>Student ID / Matric Card</option>
+                <option>Wallet</option>
+                <option>Phone</option>
+                <option>Charger / Cable</option>
+                <option>Water Bottle</option>
+                <option>Umbrella</option>
+                <option>Bag</option>
+                <option>Keys</option>
+                <option>Other</option>
+            </select>
+
+            <select name="location" class="filter-select">
+                <option value="">All Locations</option>
+                <option>FCI</option>
+                <option>FOE</option>
+                <option>FCM</option>
+                <option>Library</option>
+                <option>Arked</option>
+                <option>Bus Stop</option>
+                <option>Hostel Block</option>
+                <option>Sports Complex</option>
+                <option>Other</option>
+            </select>
+
+            <button type="submit" class="filter-btn">Search</button>
+        </form>
+
+        <div class="item-grid">
+
+            <a href="item-detail.html" class="item-card">
+                <div class="item-photo">No photo</div>
+                <div class="item-body">
+                    <span class="badge badge-found">Found</span>
+                    <div class="item-title">Blue Water Bottle</div>
+                    <div class="item-meta">Water Bottle &middot; FCI</div>
+                    <div class="item-meta">2026-08-28</div>
+                </div>
+            </a>
+
+            <a href="item-detail.html" class="item-card">
+                <div class="item-photo">No photo</div>
+                <div class="item-body">
+                    <span class="badge badge-lost">Lost</span>
+                    <div class="item-title">Black Umbrella</div>
+                    <div class="item-meta">Umbrella &middot; Library</div>
+                    <div class="item-meta">2026-08-27</div>
+                </div>
+            </a>
+
+            <a href="item-detail.html" class="item-card">
+                <div class="item-photo">No photo</div>
+                <div class="item-body">
+                    <span class="badge badge-found">Found</span>
+                    <div class="item-title">Student ID Card</div>
+                    <div class="item-meta">Student ID / Matric Card &middot; Arked</div>
+                    <div class="item-meta">2026-08-26</div>
+                </div>
+            </a>
+
+            <a href="item-detail.html" class="item-card">
+                <div class="item-photo">No photo</div>
+                <div class="item-body">
+                    <span class="badge badge-lost">Lost</span>
+                    <div class="item-title">USB-C Charger</div>
+                    <div class="item-meta">Charger / Cable &middot; FOE</div>
+                    <div class="item-meta">2026-08-25</div>
+                </div>
+            </a>
+
+            <a href="item-detail.html" class="item-card">
+                <div class="item-photo">No photo</div>
+                <div class="item-body">
+                    <span class="badge badge-found">Found</span>
+                    <div class="item-title">Brown Leather Wallet</div>
+                    <div class="item-meta">Wallet &middot; Bus Stop</div>
+                    <div class="item-meta">2026-08-24</div>
+                </div>
+            </a>
+
+            <a href="item-detail.html" class="item-card">
+                <div class="item-photo">No photo</div>
+                <div class="item-body">
+                    <span class="badge badge-lost">Lost</span>
+                    <div class="item-title">Set of Keys</div>
+                    <div class="item-meta">Keys &middot; Sports Complex</div>
+                    <div class="item-meta">2026-08-23</div>
+                </div>
+            </a>
+
+        </div>
+    </div>
+
+</body>
+</html>

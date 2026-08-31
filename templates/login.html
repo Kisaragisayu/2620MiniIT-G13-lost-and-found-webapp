@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login — MMU Lost & Found</title>
+    <style>
+        :root {
+            --color-accent: #003c71;
+            --color-accent-hover: #002850;
+            --color-border: #e2e5ea;
+            --color-muted: #6b7280;
+            --color-card-bg: #ffffff;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            background-image: url("images/campus.jpg");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        .page-overlay {
+            min-height: 100vh;
+            background: rgba(0, 25, 50, 0.55);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+        .auth-card {
+            width: 100%;
+            max-width: 400px;
+            background: var(--color-card-bg);
+            border-radius: 16px;
+            padding: 2.75rem 2.25rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+        }
+        .auth-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+            color: #111827;
+        }
+        .auth-subtitle {
+            color: var(--color-muted);
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+        .flash-message {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
+            border-radius: 8px;
+            padding: 0.7rem 0.9rem;
+            font-size: 0.85rem;
+            margin-bottom: 1.25rem;
+        }
+        .field-group { margin-bottom: 1.25rem; }
+        .label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 0.4rem;
+        }
+        .auth-label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            color: var(--color-muted);
+        }
+        .link-small {
+            font-size: 0.8rem;
+            color: var(--color-accent);
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .link-small:hover { text-decoration: underline; }
+        .auth-input {
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 0.75rem 0.9rem;
+            width: 100%;
+            font-size: 0.95rem;
+            background: #fafafa;
+            transition: border-color 0.15s, background 0.15s;
+        }
+        .auth-input:focus {
+            outline: none;
+            border-color: var(--color-accent);
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(0, 60, 113, 0.1);
+        }
+        .auth-btn {
+            background-color: var(--color-accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.8rem;
+            width: 100%;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: background 0.15s;
+        }
+        .auth-btn:hover { background-color: var(--color-accent-hover); }
+        .auth-footer {
+            text-align: center;
+            margin-top: 1.75rem;
+            font-size: 0.875rem;
+            color: var(--color-muted);
+        }
+        .auth-footer a {
+            color: var(--color-accent);
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .auth-footer a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="page-overlay">
+        <div class="auth-card">
+            <div class="auth-title">Welcome back</div>
+            <div class="auth-subtitle">Log in with your MMU account.</div>
+
+            {% with messages = get_flashed_messages() %}
+                {% for msg in messages %}
+                    <div class="flash-message">{{ msg }}</div>
+                {% endfor %}
+            {% endwith %}
+
+            <form action="#" method="POST">
+                <div class="field-group">
+                    <div class="label-row">
+                        <span class="auth-label">Email</span>
+                    </div>
+                    <input type="email" name="email" class="auth-input" placeholder="you@student.mmu.edu.my">
+                </div>
+
+                <div class="field-group">
+                    <div class="label-row">
+                        <span class="auth-label">Password</span>
+                        <a href="forgot-password.html" class="link-small">Forgot password?</a>
+                    </div>
+                    <input type="password" name="password" class="auth-input" placeholder="••••••••">
+                </div>
+
+                <button type="submit" class="auth-btn">Login</button>
+            </form>
+
+            <div class="auth-footer">
+                Don't have an account? <a href="register.html">Register</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
