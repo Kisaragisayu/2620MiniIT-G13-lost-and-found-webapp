@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import db, User
+from models import db, User, Item, Claim
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "Lost&found2620"
@@ -56,6 +56,24 @@ def login():
 def logout():
     session.clear()
     return redirect(url_for("home"))
+
+def current_user():
+    if "user_id" in session:
+        return User.query.get(session["user_id"])
+    return None
+
+
+@app.route("/admin")
+def admin_panel():
+    user = current_user()
+    if not user or user.role != "admin":
+        flash("Access denied.")
+        return redirect(url_for("home"))
+
+    users = User.query.all()
+    items = Item.query.all()
+    claims = Claim.query.all()
+    return render_template("admin.html", users=users, items=items, claims=claims)
 
 if __name__ == "__main__":
     with app.app_context():
