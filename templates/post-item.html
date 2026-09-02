@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Post an Item — MMU Lost & Found</title>
+    <style>
+        :root {
+            --color-accent: #003c71;
+            --color-accent-hover: #002850;
+            --color-border: #e2e5ea;
+            --color-muted: #6b7280;
+            --color-page-bg: #f1f3f6;
+            --color-card-bg: #ffffff;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            background: var(--color-page-bg);
+            color: #111827;
+        }
+
+        /* --- Navbar --- */
+        .navbar {
+            background: var(--color-accent);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar-brand {
+            color: white;
+            font-weight: 700;
+            font-size: 1.1rem;
+            text-decoration: none;
+        }
+        .navbar-links {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+        .btn-outline {
+            color: white;
+            border: 1px solid rgba(255,255,255,0.5);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .btn-outline:hover { background: rgba(255,255,255,0.12); }
+
+        /* --- Form card --- */
+        .form-wrapper {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 2.5rem 1.5rem;
+        }
+        .form-card {
+            background: var(--color-card-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 16px;
+            padding: 2.5rem;
+        }
+        .form-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+        }
+        .form-subtitle {
+            color: var(--color-muted);
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+        .flash-message {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
+            border-radius: 8px;
+            padding: 0.7rem 0.9rem;
+            font-size: 0.85rem;
+            margin-bottom: 1.25rem;
+        }
+
+        /* --- Two-column grid --- */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+        .field-group { margin-bottom: 1.25rem; }
+        .form-label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            color: var(--color-muted);
+            display: block;
+            margin-bottom: 0.4rem;
+        }
+        .form-input, .form-select, .form-textarea {
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 0.75rem 0.9rem;
+            width: 100%;
+            font-size: 0.95rem;
+            background: #fafafa;
+            font-family: inherit;
+            transition: border-color 0.15s, background 0.15s;
+        }
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--color-accent);
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(0, 60, 113, 0.1);
+        }
+        .form-textarea {
+            resize: vertical;
+            min-height: 90px;
+        }
+        .field-hint {
+            font-size: 0.78rem;
+            color: var(--color-muted);
+            margin-top: 0.35rem;
+        }
+        .hidden-detail-box {
+            background: #f8fafc;
+            border: 1px dashed var(--color-border);
+            border-radius: 10px;
+            padding: 1.1rem;
+            margin-bottom: 1.5rem;
+        }
+        .submit-btn {
+            background-color: var(--color-accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.85rem;
+            width: 100%;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .submit-btn:hover { background-color: var(--color-accent-hover); }
+
+        @media (max-width: 640px) {
+            .form-row { grid-template-columns: 1fr; }
+            .form-card { padding: 1.75rem 1.25rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="index.html" class="navbar-brand">MMU Lost &amp; Found</a>
+        <div class="navbar-links">
+            <a href="index.html" class="btn-outline">Browse</a>
+            <a href="login.html" class="btn-outline">Logout</a>
+        </div>
+    </nav>
+
+    <div class="form-wrapper">
+        <div class="form-card">
+            <div class="form-title">Report a Lost or Found Item</div>
+            <div class="form-subtitle">Fill in the details below. The more specific you are, the easier it is to reconnect items with owners.</div>
+
+            {% with messages = get_flashed_messages() %}
+                {% for msg in messages %}
+                    <div class="flash-message">{{ msg }}</div>
+                {% endfor %}
+            {% endwith %}
+
+            <form action="#" method="POST" enctype="multipart/form-data">
+
+                <div class="form-row">
+                    <div>
+                        <label class="form-label">This item is</label>
+                        <select name="item_type" class="form-select" required>
+                            <option value="Lost">Lost — I lost this</option>
+                            <option value="Found">Found — I found this</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Date Lost / Found</label>
+                        <input type="date" name="date_lost_found" class="form-input" required>
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <label class="form-label">Title</label>
+                    <input type="text" name="title" class="form-input" placeholder="e.g. Blue water bottle" required>
+                </div>
+
+                <div class="field-group">
+                    <label class="form-label">Description</label>
+                    <textarea name="description" class="form-textarea" placeholder="Describe the item — colour, brand, condition, anything visible." required></textarea>
+                    <div class="field-hint">This is shown publicly. Don't include details only the owner would know.</div>
+                </div>
+
+                <div class="form-row">
+                    <div>
+                        <label class="form-label">Category</label>
+                        <select name="category" class="form-select" required>
+                            <option>Student ID / Matric Card</option>
+                            <option>Wallet</option>
+                            <option>Phone</option>
+                            <option>Charger / Cable</option>
+                            <option>Water Bottle</option>
+                            <option>Umbrella</option>
+                            <option>Bag</option>
+                            <option>Keys</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Location</label>
+                        <select name="location" class="form-select" required>
+                            <option>FCI</option>
+                            <option>FOE</option>
+                            <option>FCM</option>
+                            <option>Library</option>
+                            <option>Arked</option>
+                            <option>Bus Stop</option>
+                            <option>Hostel Block</option>
+                            <option>Sports Complex</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <label class="form-label">Photo (optional)</label>
+                    <input type="file" name="photo" class="form-input" accept=".png,.jpg,.jpeg,.gif">
+                    <div class="field-hint">A photo helps people recognise the item at a glance.</div>
+                </div>
+
+                <div class="hidden-detail-box">
+                    <label class="form-label">Hidden identifying detail</label>
+                    <input type="text" name="hidden_detail" class="form-input" placeholder="e.g. small crack near the cap, name written inside">
+                    <div class="field-hint">Kept private. Claimants must describe this correctly to prove the item is theirs.</div>
+                </div>
+
+                <button type="submit" class="submit-btn">Post Item</button>
+            </form>
+        </div>
+    </div>
+
+</body>
+</html>
