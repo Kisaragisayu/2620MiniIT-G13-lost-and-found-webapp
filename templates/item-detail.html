@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Item Details — MMU Lost & Found</title>
+    <style>
+        :root {
+            --color-accent: #003c71;
+            --color-accent-hover: #002850;
+            --color-border: #e2e5ea;
+            --color-muted: #6b7280;
+            --color-page-bg: #f1f3f6;
+            --color-card-bg: #ffffff;
+            --color-danger: #c62828;
+            --color-danger-hover: #a01f1f;
+            --color-success: #15803d;
+            --color-success-hover: #126630;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            background: var(--color-page-bg);
+            color: #111827;
+        }
+
+        /* --- Navbar --- */
+        .navbar {
+            background: var(--color-accent);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar-brand {
+            color: white;
+            font-weight: 700;
+            font-size: 1.1rem;
+            text-decoration: none;
+        }
+        .navbar-links { display: flex; gap: 0.75rem; }
+        .btn-outline {
+            color: white;
+            border: 1px solid rgba(255,255,255,0.5);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .btn-outline:hover { background: rgba(255,255,255,0.12); }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+        .back-link {
+            display: inline-block;
+            color: var(--color-muted);
+            text-decoration: none;
+            font-size: 0.88rem;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+        }
+        .back-link:hover { color: var(--color-accent); }
+
+        /* --- Two-column layout --- */
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        .item-photo {
+            width: 100%;
+            height: 340px;
+            background: #e5e7eb;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-muted);
+            font-size: 0.9rem;
+            border: 1px solid var(--color-border);
+        }
+
+        .info-card {
+            background: var(--color-card-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 14px;
+            padding: 1.75rem;
+        }
+        .badge-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.9rem;
+        }
+        .badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            padding: 0.28rem 0.65rem;
+            border-radius: 999px;
+        }
+        .badge-lost { background: #fee2e2; color: #991b1b; }
+        .badge-found { background: #dcfce7; color: #166534; }
+        .badge-active { background: #dbeafe; color: #1e40af; }
+        .badge-resolved { background: #f1f5f9; color: #475569; }
+        .badge-pending { background: #f97316; color: #ffffff; }
+        .badge-approved { background: #dcfce7; color: #166534; }
+        .badge-rejected { background: #fee2e2; color: #991b1b; }
+        .badge-closed { background: #f1f5f9; color: #475569; }
+
+        .item-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.6rem;
+        }
+        .item-description {
+            font-size: 0.95rem;
+            line-height: 1.55;
+            color: #374151;
+            margin-bottom: 1.5rem;
+        }
+
+        .meta-list {
+            border-top: 1px solid var(--color-border);
+            padding-top: 1.1rem;
+        }
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            font-size: 0.9rem;
+        }
+        .meta-label {
+            color: var(--color-muted);
+            font-weight: 600;
+        }
+        .name-chip {
+            display: inline-block;
+            background: #eef2f7;
+            border: 1px solid #dde4ec;
+            border-radius: 8px;
+            padding: 0.25rem 0.6rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #1f2937;
+        }
+
+        /* --- Section blocks below --- */
+        .section {
+            background: var(--color-card-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 14px;
+            padding: 1.75rem;
+            margin-top: 1.5rem;
+        }
+        .section-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 0.4rem;
+        }
+        .section-hint {
+            font-size: 0.86rem;
+            color: var(--color-muted);
+            margin-bottom: 1.25rem;
+        }
+
+        .form-textarea {
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 0.75rem 0.9rem;
+            width: 100%;
+            font-size: 0.95rem;
+            background: #fafafa;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 90px;
+            margin-bottom: 0.9rem;
+        }
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--color-accent);
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(0, 60, 113, 0.1);
+        }
+
+        .btn-primary {
+            background: var(--color-accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.7rem 1.4rem;
+            font-weight: 600;
+            font-size: 0.92rem;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .btn-primary:hover { background: var(--color-accent-hover); }
+
+        .owner-actions {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+        .btn-secondary, .btn-danger, .btn-success {
+            border: none;
+            border-radius: 8px;
+            padding: 0.55rem 1.1rem;
+            font-weight: 600;
+            font-size: 0.86rem;
+            cursor: pointer;
+            font-family: inherit;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-secondary {
+            background: #eef2f7;
+            color: #1f2937;
+            border: 1px solid #dde4ec;
+        }
+        .btn-secondary:hover { background: #e2e8f0; }
+        .btn-danger {
+            background: var(--color-danger);
+            color: white;
+        }
+        .btn-danger:hover { background: var(--color-danger-hover); }
+        .btn-success {
+            background: var(--color-success);
+            color: white;
+        }
+        .btn-success:hover { background: var(--color-success-hover); }
+
+        /* --- Claim cards --- */
+        .claim-card {
+            border: 1px solid var(--color-border);
+            border-radius: 10px;
+            padding: 1.1rem;
+            margin-bottom: 0.85rem;
+            background: #fafbfc;
+        }
+        .claim-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.7rem;
+        }
+        .claim-message {
+            font-size: 0.92rem;
+            line-height: 1.5;
+            color: #374151;
+            margin-bottom: 0.9rem;
+        }
+        .claim-actions { display: flex; gap: 0.5rem; }
+        .claim-date {
+            font-size: 0.8rem;
+            color: var(--color-muted);
+        }
+
+        .login-note {
+            font-size: 0.92rem;
+            color: var(--color-muted);
+        }
+        .login-note a {
+            color: var(--color-accent);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .state-label {
+            background: #fffbeb;
+            border: 1px dashed #fcd34d;
+            color: #92400e;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.5rem 0.8rem;
+            border-radius: 8px;
+            margin-top: 1.5rem;
+            margin-bottom: -0.5rem;
+        }
+
+        @media (max-width: 720px) {
+            .detail-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="index.html" class="navbar-brand">MMU Lost &amp; Found</a>
+        <div class="navbar-links">
+            <a href="post-item.html" class="btn-outline">+ Post Item</a>
+            <a href="login.html" class="btn-outline">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to listings</a>
+
+        <div class="detail-grid">
+            <div class="item-photo">No photo</div>
+
+            <div class="info-card">
+                <div class="badge-row">
+                    <span class="badge badge-found">Found</span>
+                    <span class="badge badge-active">Active</span>
+                </div>
+
+                <div class="item-title">Blue Water Bottle</div>
+                <div class="item-description">
+                    Blue stainless steel water bottle, roughly 750ml. Found on a bench outside the FCI building in the late afternoon. Handed nothing in yet, still holding it.
+                </div>
+
+                <div class="meta-list">
+                    <div class="meta-row">
+                        <span class="meta-label">Category</span>
+                        <span>Water Bottle</span>
+                    </div>
+                    <div class="meta-row">
+                        <span class="meta-label">Location</span>
+                        <span>FCI</span>
+                    </div>
+                    <div class="meta-row">
+                        <span class="meta-label">Date Found</span>
+                        <span>2026-08-28</span>
+                    </div>
+                    <div class="meta-row">
+                        <span class="meta-label">Posted by</span>
+                        <span class="name-chip">Temirlan</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================
+             STATE 1 — Visitor is the OWNER of this listing
+             At integration wrap in:
+             {% if current_user and current_user.id == item.user_id %}
+             ============================================================ -->
+        <div class="state-label">STATE 1 — owner view (remove this label later)</div>
+
+        <div class="section">
+            <div class="section-title">Manage this listing</div>
+            <div class="section-hint">Edit the details, mark it resolved if handed over in person, or delete it.</div>
+            <div class="owner-actions">
+                <a href="post-item.html" class="btn-secondary">Edit</a>
+                <button class="btn-success">Mark as Resolved</button>
+                <button class="btn-danger">Delete</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Claims on this item</div>
+            <div class="section-hint">Compare each description against the hidden detail you saved when posting.</div>
+
+            <div class="claim-card">
+                <div class="claim-head">
+                    <span class="name-chip">Mustafa Yusupov</span>
+                    <span class="badge badge-pending">Pending</span>
+                </div>
+                <div class="claim-message">
+                    It has a small dent near the base and a faded sticker of a mountain on the side. My name is scratched into the bottom.
+                </div>
+                <div class="claim-actions">
+                    <button class="btn-success">Approve</button>
+                    <button class="btn-danger">Reject</button>
+                </div>
+            </div>
+
+            <div class="claim-card">
+                <div class="claim-head">
+                    <span class="name-chip">Omar</span>
+                    <span class="badge badge-rejected">Rejected</span>
+                </div>
+                <div class="claim-message">
+                    I think it's mine, I lost a blue bottle last week.
+                </div>
+                <div class="claim-date">Submitted 2026-08-29</div>
+            </div>
+        </div>
+
+        <!-- ============================================================
+             STATE 2 — Visitor is logged in but NOT the owner
+             At integration wrap in:
+             {% elif current_user and item.status == 'Active' %}
+             ============================================================ -->
+        <div class="state-label">STATE 2 — logged-in visitor view (remove this label later)</div>
+
+        <div class="section">
+            <div class="section-title">Think this is yours?</div>
+            <div class="section-hint">Describe a specific detail that isn't in the public description — something only the real owner would know.</div>
+            <form action="#" method="POST">
+                <textarea name="message" class="form-textarea" placeholder="e.g. there's a dent near the base and a sticker on the side..." required></textarea>
+                <button type="submit" class="btn-primary">Submit Claim</button>
+            </form>
+        </div>
+
+        <!-- ============================================================
+             STATE 3 — Visitor is NOT logged in
+             At integration wrap in:
+             {% else %} ... {% endif %}
+             ============================================================ -->
+        <div class="state-label">STATE 3 — guest view (remove this label later)</div>
+
+        <div class="section">
+            <div class="login-note">
+                <a href="login.html">Log in</a> with your MMU account to submit a claim on this item.
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
