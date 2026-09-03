@@ -14,6 +14,8 @@ class User(db.Model):
     reset_token = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+    items = db.relationship("Item", backref="reporter", lazy=True)
+
 
 class Item(db.Model):
     __tablename__ = "items"
@@ -27,6 +29,7 @@ class Item(db.Model):
     category = db.Column(db.String(50), nullable=False)
     location = db.Column(db.String(50), nullable=False)
     hidden_detail = db.Column(db.String(255), nullable=True)
+    claims = db.relationship("Claim", backref="item", lazy=True, cascade="all, delete-orphan")
     image_filename = db.Column(db.String(255), nullable=True)
     status = db.Column(db.String(20), default="Active")
 
@@ -36,6 +39,7 @@ class Claim(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     item_id = db.Column(db.Integer, db.ForeignKey("items.id"), nullable=False)
     claimant_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    claimant = db.relationship("User", foreign_keys=[claimant_id])
     message = db.Column(db.Text, nullable=False)
     status = db.Column(db.String(20), default="Pending")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

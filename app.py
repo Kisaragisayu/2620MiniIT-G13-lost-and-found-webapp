@@ -75,6 +75,19 @@ def admin_panel():
     claims = Claim.query.all()
     return render_template("admin.html", users=users, items=items, claims=claims)
 
+@app.route("/admin/item/<int:item_id>/remove", methods=["POST"])
+def admin_remove_item(item_id):
+    user = current_user()
+    if not user or user.role != "admin":
+        flash("Access denied.")
+        return redirect(url_for("home"))
+
+    item = Item.query.get_or_404(item_id)
+    db.session.delete(item)
+    db.session.commit()
+    flash(f"Listing '{item.title}' has been removed.")
+    return redirect(url_for("admin_panel"))
+
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
