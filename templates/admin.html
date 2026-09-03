@@ -243,30 +243,28 @@
                     <th>Posted by</th>
                     <th></th>
                 </tr>
-                <tr>
-                    <td>Blue Water Bottle</td>
-                    <td><span class="badge badge-found">Found</span></td>
-                    <td>Water Bottle</td>
-                    <td>FCI</td>
-                    <td><span class="name-chip">Mustafa Yusupov</span></td>
-                    <td><button class="action-btn">Remove</button></td>
-                </tr>
-                <tr>
-                    <td>Black Umbrella</td>
-                    <td><span class="badge badge-lost">Lost</span></td>
-                    <td>Umbrella</td>
-                    <td>Library</td>
-                    <td><span class="name-chip">Temirlan</span></td>
-                    <td><button class="action-btn">Remove</button></td>
-                </tr>
-                <tr>
-                    <td>Student ID Card</td>
-                    <td><span class="badge badge-found">Found</span></td>
-                    <td>Student ID / Matric Card</td>
-                    <td>Arked</td>
-                    <td><span class="name-chip">Omar</span></td>
-                    <td><button class="action-btn">Remove</button></td>
-                </tr>
+                
+                    {% for item in items %}
+                    <tr>
+                        <td>{{ item.title }}</td>
+                        <td>
+                            {% if item.item_type == 'Lost' %}
+                                <span class="badge badge-lost">Lost</span>
+                            {% else %}
+                                <span class="badge badge-found">Found</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ item.category }}</td>
+                        <td>{{ item.location }}</td>
+                        <td><span class="name-chip">{{ item.reporter.name }}</span></td>
+                        <td>
+                            <form method="POST" action="{{ url_for('admin_remove_item', item_id=item.id) }}" onsubmit="return confirm('Remove this listing?');">
+                                <button type="submit" class="action-btn">Remove</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+
             </table>
         </div>
 
