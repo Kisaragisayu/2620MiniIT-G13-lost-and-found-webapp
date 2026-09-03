@@ -19,6 +19,18 @@ with app.app_context():
             status="Active",
         )
 
+        phone = Item(
+            user_id=admin.id,
+            item_type="Found",
+            title="Iphone 12 Pro Max",
+            description="White iPhone 12 Pro Max, 256GB.",
+            category="Electronics",
+            location="FCM",
+            date_lost_found="2026-08-28",
+            hidden_detail="Cracked screen on the top right corner",
+            status="Active",
+        )
+
         umbrella = Item(
             user_id=admin.id,
             item_type="Lost",
@@ -32,16 +44,34 @@ with app.app_context():
         )
 
         db.session.add(bottle)
+        db.session.add(phone)
         db.session.add(umbrella)
         db.session.commit()
 
-        claim = Claim(
+        claim1 = Claim(
             item_id=bottle.id,
             claimant_id=admin.id,
             message="It has a dent near the bottom and a faded sticker on the side.",
-            status="Pending",
+            status="Approved",
         )
-        db.session.add(claim)
+
+        claim2 = Claim(
+            item_id=umbrella.id,
+            claimant_id=admin.id,
+            message="It has a chip on the handle and a small scratch on the fabric.",
+            status="Closed"
+        )
+
+        claim3= Claim(
+                item_id=phone.id,
+                claimant_id=admin.id,
+                message="lost my phone, it has a cracked screen on the top right corner.",
+                status="Pending"
+        )
+
+        db.session.add(claim1)
+        db.session.add(claim2)
+        db.session.add(claim3)
         db.session.commit()
 
-        print("Test data added: 2 items, 1 claim")
+        print("Test data added: Done!")
