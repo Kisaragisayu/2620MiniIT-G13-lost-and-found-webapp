@@ -181,9 +181,9 @@
 <body>
 
     <nav class="navbar">
-        <a href="{{ url_for('index') }}" class="navbar-brand">MMU Lost &amp; Found</a>
+        <a href="{{ url_for('home') }}" class="navbar-brand">MMU Lost &amp; Found</a>
         <div class="navbar-links">
-            <a href="{{ url_for('index') }}" class="btn-outline">Browse</a>
+            <a href="{{ url_for('home') }}" class="btn-outline">Browse</a>
             <a href="{{ url_for('logout') }}" class="btn-outline">Logout</a>
         </div>
     </nav>
@@ -193,7 +193,11 @@
             <div class="page-title">Admin Panel</div>
             <div class="page-subtitle">Manage users, listings and claims across the system.</div>
         </div>
-
+                {% with messages = get_flashed_messages() %}
+            {% for msg in messages %}
+                <div class="flash-message">{{ msg }}</div>
+            {% endfor %}
+        {% endwith %}
         <div class="tab-bar">
             <button class="tab-btn active" onclick="showTab('users')">Users</button>
             <button class="tab-btn" onclick="showTab('items')">Listings</button>
@@ -210,27 +214,25 @@
                     <th>Joined</th>
                     <th></th>
                 </tr>
-                <tr>
-                    <td><span class="name-chip">Mustafa Yusupov</span></td>
-                    <td>yusupov.mustafo@student.mmu.edu.my</td>
-                    <td><span class="badge badge-user">User</span></td>
-                    <td>2026-08-28</td>
-                    <td><button class="action-btn">Ban</button></td>
-                </tr>
-                <tr>
-                    <td><span class="name-chip">Omar</span></td>
-                    <td>omar@student.mmu.edu.my</td>
-                    <td><span class="badge badge-admin">Admin</span></td>
-                    <td>2026-08-27</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td><span class="name-chip">Temirlan</span></td>
-                    <td>temirlan@student.mmu.edu.my</td>
-                    <td><span class="badge badge-user">User</span></td>
-                    <td>2026-08-29</td>
-                    <td><button class="action-btn">Ban</button></td>
-                </tr>
+                                    {% for user in users %}
+                    <tr>
+                        <td><span class="name-chip">{{ user.name }}</span></td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            {% if user.role == 'admin' %}
+                                <span class="badge badge-admin">Admin</span>
+                            {% else %}
+                                <span class="badge badge-user">User</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            {% if user.role != 'admin' %}
+                                <button class="action-btn">Ban</button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
             </table>
         </div>
 
@@ -245,30 +247,28 @@
                     <th>Posted by</th>
                     <th></th>
                 </tr>
-                <tr>
-                    <td>Blue Water Bottle</td>
-                    <td><span class="badge badge-found">Found</span></td>
-                    <td>Water Bottle</td>
-                    <td>FCI</td>
-                    <td><span class="name-chip">Mustafa Yusupov</span></td>
-                    <td><button class="action-btn">Remove</button></td>
-                </tr>
-                <tr>
-                    <td>Black Umbrella</td>
-                    <td><span class="badge badge-lost">Lost</span></td>
-                    <td>Umbrella</td>
-                    <td>Library</td>
-                    <td><span class="name-chip">Temirlan</span></td>
-                    <td><button class="action-btn">Remove</button></td>
-                </tr>
-                <tr>
-                    <td>Student ID Card</td>
-                    <td><span class="badge badge-found">Found</span></td>
-                    <td>Student ID / Matric Card</td>
-                    <td>Arked</td>
-                    <td><span class="name-chip">Omar</span></td>
-                    <td><button class="action-btn">Remove</button></td>
-                </tr>
+                
+                    {% for item in items %}
+                    <tr>
+                        <td>{{ item.title }}</td>
+                        <td>
+                            {% if item.item_type == 'Lost' %}
+                                <span class="badge badge-lost">Lost</span>
+                            {% else %}
+                                <span class="badge badge-found">Found</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ item.category }}</td>
+                        <td>{{ item.location }}</td>
+                        <td><span class="name-chip">{{ item.reporter.name }}</span></td>
+                        <td>
+                            <form method="POST" action="{{ url_for('admin_remove_item', item_id=item.id) }}" onsubmit="return confirm('Remove this listing?');">
+                                <button type="submit" class="action-btn">Remove</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+
             </table>
         </div>
 
@@ -281,24 +281,24 @@
                     <th>Status</th>
                     <th>Submitted</th>
                 </tr>
-                <tr>
-                    <td>Blue Water Bottle</td>
-                    <td><span class="name-chip">Temirlan</span></td>
-                    <td><span class="badge badge-pending">Pending</span></td>
-                    <td>2026-08-30</td>
-                </tr>
-                <tr>
-                    <td>Student ID Card</td>
-                    <td><span class="name-chip">Mustafa Yusupov</span></td>
-                    <td><span class="badge badge-approved">Approved</span></td>
-                    <td>2026-08-29</td>
-                </tr>
-                <tr>
-                    <td>Student ID Card</td>
-                    <td><span class="name-chip">Omar</span></td>
-                    <td><span class="badge badge-closed">Closed</span></td>
-                    <td>2026-08-29</td>
-                </tr>
+                                    {% for claim in claims %}
+                    <tr>
+                        <td>{{ claim.item.title }}</td>
+                        <td><span class="name-chip">{{ claim.claimant.name }}</span></td>
+                        <td>
+                            {% if claim.status == 'Pending' %}
+                                <span class="badge badge-pending">Pending</span>
+                            {% elif claim.status == 'Approved' %}
+                                <span class="badge badge-approved">Approved</span>
+                            {% elif claim.status == 'Rejected' %}
+                                <span class="badge badge-rejected">Rejected</span>
+                            {% else %}
+                                <span class="badge badge-closed">Closed</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ claim.created_at.strftime('%Y-%m-%d') }}</td>
+                    </tr>
+                    {% endfor %}
             </table>
         </div>
     </div>
