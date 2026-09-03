@@ -193,7 +193,11 @@
             <div class="page-title">Admin Panel</div>
             <div class="page-subtitle">Manage users, listings and claims across the system.</div>
         </div>
-
+                {% with messages = get_flashed_messages() %}
+            {% for msg in messages %}
+                <div class="flash-message">{{ msg }}</div>
+            {% endfor %}
+        {% endwith %}
         <div class="tab-bar">
             <button class="tab-btn active" onclick="showTab('users')">Users</button>
             <button class="tab-btn" onclick="showTab('items')">Listings</button>
