@@ -1,20 +1,34 @@
 import os
-from werkzeug.utils import secure_filename
+from datetime import date
+from functools import wraps
+
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import db, User, Item, Claim
-from functools import wraps
-from datetime import date
+from werkzeug.utils import secure_filename
 
+from models import db, User, Item, Claim
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "Lost&found2620"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///lostfound.db"
+app.config["UPLOAD_FOLDER"] = os.path.join("static", "uploads")
+app.config["ALLOWED_EXTENSIONS"] = {"png", "jpg", "jpeg", "gif"}
 
 db.init_app(app)
 
 LOCATIONS = ["FCI", "FOE", "FCM", "Library", "Arked", "Bus Stop", "Hostel Block", "Sports Complex", "Other"]
 CATEGORIES = ["Student ID / Matric Card", "Wallet", "Phone", "Charger / Cable", "Water Bottle", "Umbrella", "Bag", "Keys", "Other"]
+
+
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in app.config["ALLOWED_EXTENSIONS"]
+
+
+def current_user():
+    if "user_id" in session:
+        return User.query.get(session["user_id"])
+    return None
+
 
 def login_required(view_func):
     @wraps(view_func)
@@ -24,6 +38,12 @@ def login_required(view_func):
             return redirect(url_for("login"))
         return view_func(*args, **kwargs)
     return wrapped
+
+
+@app.context_processor
+def inject_user():
+    return {"current_user": current_user()}
+
 
 @app.route("/")
 def home():
@@ -44,6 +64,7 @@ def home():
     return render_template("index.html", items=items, categories=CATEGORIES,
                            locations=LOCATIONS, selected_category=category,
                            selected_location=location, keyword=keyword)
+
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -68,6 +89,7 @@ def register():
 
     return render_template("register.html")
 
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -85,15 +107,11 @@ def login():
 
     return render_template("login.html")
 
+
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect(url_for("home"))
-
-def current_user():
-    if "user_id" in session:
-        return User.query.get(session["user_id"])
-    return None
 
 
 @app.route("/admin")
@@ -108,6 +126,7 @@ def admin_panel():
     claims = Claim.query.all()
     return render_template("admin.html", users=users, items=items, claims=claims)
 
+
 @app.route("/admin/item/<int:item_id>/remove", methods=["POST"])
 def admin_remove_item(item_id):
     user = current_user()
@@ -121,20 +140,8 @@ def admin_remove_item(item_id):
     flash(f"Listing '{item.title}' has been removed.")
     return redirect(url_for("admin_panel"))
 
+
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
     app.run(debug=True)
-
-
-@app.context_processor
-def inject_user():
-    return {"current_user": current_user()}
-
-app.config["UPLOAD_FOLDER"] = os.path.join("static", "uploads")
-app.config["ALLOWED_EXTENSIONS"] = {"png", "jpg", "jpeg", "gif"}
-
-
-def allowed_file(filename):
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in app.config["ALLOWED_EXTENSIONS"]
-
