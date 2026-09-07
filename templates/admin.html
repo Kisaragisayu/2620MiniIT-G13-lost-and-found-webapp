@@ -78,7 +78,7 @@
             border-radius: 8px;
             margin-bottom: 1.5rem;
         }
-        
+
         /* --- Tabs (centered) --- */
         .tab-bar {
             display: flex;
@@ -254,6 +254,7 @@
                     <th>Type</th>
                     <th>Category</th>
                     <th>Location</th>
+                    <th>Status</th>
                     <th>Posted by</th>
                     <th></th>
                 </tr>
@@ -270,6 +271,13 @@
                         </td>
                         <td>{{ item.category }}</td>
                         <td>{{ item.location }}</td>
+                        <td>
+                            {% if item.status == 'Active' %}
+                                <span class="badge badge-approved">Active</span>
+                            {% else %}
+                                <span class="badge badge-closed">Resolved</span>
+                            {% endif %}
+                        </td>
                         <td><span class="name-chip">{{ item.reporter.name }}</span></td>
                         <td>
                             <form method="POST" action="{{ url_for('admin_remove_item', item_id=item.id) }}" onsubmit="return confirm('Remove this listing?');">
