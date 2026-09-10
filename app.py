@@ -176,6 +176,97 @@ def admin_review_flag(flag_id):
     flash("Flag marked as reviewed.")
     return redirect(url_for("admin_panel"))
 
+@app.route("/post", methods=["GET", "POST"])
+@login_required
+def post_item():
+    if request.method == "POST":
+        date_lost_found = request.form["date_lost_found"]
+
+        if date_lost_found > date.today().isoformat():
+            flash("Date lost/found cannot be in the future.")
+            return redirect(url_for("post_item"))
+
+        image_filename = None
+        file = request.files.get("photo")
+        if file and file.filename and allowed_file(file.filename):
+            image_filename = secure_filename(f"{session['user_id']}_{file.filename}")
+            file.save(os.path.join(app.config["UPLOAD_FOLDER"], image_filename))
+
+        new_item = Item(
+            user_id=session["user_id"],
+            item_type=request.form["item_type"],
+            title=request.form["title"].strip(),
+            description=request.form["description"].strip(),
+            category=request.form["category"],
+            location=request.form["location"],
+            date_lost_found=date_lost_found,
+            hidden_detail=request.form["hidden_detail"].strip(),
+            image_filename=image_filename,
+            status="Active",
+        )
+        db.session.add(new_item)
+        db.session.commit()
+        flash("Your item has been posted.")
+        return redirect(url_for("item_detail", item_id=new_item.id))
+
+    return render_template("post-item.html", categories=CATEGORIES, locations=LOCATIONS)
+
+
+
+@app.route("/item/<int:item_id>")
+def item_detail(item_id):
+    item = Item.query.get_or_404(item_id)
+    user = current_user()
+    claims = item.claims if user and user.id == item.user_id else []
+    return render_template("item-detail.html", item=item, claims=claims)
+
+@app.route("/item/<int:item_id>/edit", methods=["GET", "POST"])
+@login_required
+def edit_item(item_id):
+    item = Item.query.get_or_404(item_id)
+    if item.user_id != session["user_id"]:
+        flash("You can only edit your own listings.")
+        return redirect(url_for("item_detail", item_id=item.id))
+
+    if request.method == "POST":
+        item.title = request.form["title"].strip()
+        item.description = request.form["description"].strip()
+        item.category = request.form["category"]
+        item.location = request.form["location"]
+        item.hidden_detail = request.form["hidden_detail"].strip()
+        db.session.commit()
+        flash("Listing updated.")
+        return redirect(url_for("item_detail", item_id=item.id))
+
+    return render_template("post-item.html", item=item, categories=CATEGORIES,
+                           locations=LOCATIONS, editing=True)
+
+
+@app.route("/item/<int:item_id>/delete", methods=["POST"])
+@login_required
+def delete_item(item_id):
+    item = Item.query.get_or_404(item_id)
+    if item.user_id != session["user_id"]:
+        flash("You can only delete your own listings.")
+        return redirect(url_for("item_detail", item_id=item.id))
+    db.session.delete(item)
+    db.session.commit()
+    flash("Listing deleted.")
+    return redirect(url_for("home"))
+
+
+@app.route("/item/<int:item_id>/resolve", methods=["POST"])
+@login_required
+def resolve_item(item_id):
+    item = Item.query.get_or_404(item_id)
+    if item.user_id != session["user_id"]:
+        flash("You can only update your own listings.")
+        return redirect(url_for("item_detail", item_id=item.id))
+    item.status = "Resolved"
+    db.session.commit()
+    flash("Marked as resolved.")
+    return redirect(url_for("item_detail", item_id=item.id))
+
 
 if __name__ == "__main__":
     with app.app_context():
