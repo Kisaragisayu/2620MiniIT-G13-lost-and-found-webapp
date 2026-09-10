@@ -1,0 +1,317 @@
+/* ============================================================
+   MMU Lost & Found — shared stylesheet
+   Everything used by more than one page lives here.
+   Page-specific rules stay in that page's {% block styles %}.
+   ============================================================ */
+
+:root {
+    --color-accent: #003c71;
+    --color-accent-hover: #002850;
+    --color-border: #e2e5ea;
+    --color-muted: #6b7280;
+    --color-page-bg: #f1f3f6;
+    --color-card-bg: #ffffff;
+    --color-danger: #c62828;
+    --color-danger-hover: #a01f1f;
+    --color-success: #15803d;
+    --color-success-hover: #126630;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    margin: 0;
+    color: #111827;
+}
+
+/* Pages with the navbar */
+body.app-body {
+    background: var(--color-page-bg);
+}
+
+/* Login / register / password pages — the image itself is set in base-auth.html */
+body.auth-body {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+
+/* ---------- Navbar ---------- */
+
+.navbar {
+    background: var(--color-accent);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.navbar-brand {
+    color: white;
+    font-weight: 700;
+    font-size: 1.1rem;
+    text-decoration: none;
+}
+.navbar-links {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+.btn-outline {
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+.btn-outline:hover { background: rgba(255, 255, 255, 0.12); }
+
+.btn-white {
+    background: white;
+    color: var(--color-accent);
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+
+/* ---------- Page container ---------- */
+
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+}
+.container-narrow {
+    max-width: 1000px;
+}
+.page-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+}
+
+
+/* ---------- Flash messages ---------- */
+
+.flash-message {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+    border-radius: 8px;
+    padding: 0.7rem 0.9rem;
+    font-size: 0.85rem;
+    margin-bottom: 1.25rem;
+}
+
+
+/* ---------- Badges ---------- */
+
+.badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+}
+.badge-lost     { background: #fee2e2; color: #991b1b; }
+.badge-found    { background: #dcfce7; color: #166534; }
+.badge-active   { background: #dbeafe; color: #1e40af; }
+.badge-resolved { background: #f1f5f9; color: #475569; }
+.badge-pending  { background: #f97316; color: #ffffff; }
+.badge-approved { background: #dcfce7; color: #166534; }
+.badge-rejected { background: #fee2e2; color: #991b1b; }
+.badge-closed   { background: #f1f5f9; color: #475569; }
+.badge-admin    { background: #dbeafe; color: #1e40af; }
+.badge-user     { background: #f1f5f9; color: #475569; }
+
+
+/* ---------- Name chip ---------- */
+
+.name-chip {
+    display: inline-block;
+    background: #eef2f7;
+    border: 1px solid #dde4ec;
+    border-radius: 8px;
+    padding: 0.3rem 0.65rem;
+    font-weight: 600;
+    font-size: 0.86rem;
+    color: #1f2937;
+}
+
+
+/* ---------- Buttons ---------- */
+
+.btn-primary {
+    background: var(--color-accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.7rem 1.4rem;
+    font-weight: 600;
+    font-size: 0.92rem;
+    cursor: pointer;
+    font-family: inherit;
+}
+.btn-primary:hover { background: var(--color-accent-hover); }
+
+.btn-secondary, .btn-danger, .btn-success {
+    border: none;
+    border-radius: 8px;
+    padding: 0.55rem 1.1rem;
+    font-weight: 600;
+    font-size: 0.86rem;
+    cursor: pointer;
+    font-family: inherit;
+    text-decoration: none;
+    display: inline-block;
+}
+.btn-secondary {
+    background: #eef2f7;
+    color: #1f2937;
+    border: 1px solid #dde4ec;
+}
+.btn-secondary:hover { background: #e2e8f0; }
+.btn-danger  { background: var(--color-danger); color: white; }
+.btn-danger:hover  { background: var(--color-danger-hover); }
+.btn-success { background: var(--color-success); color: white; }
+.btn-success:hover { background: var(--color-success-hover); }
+
+/* Small red button used inside admin tables */
+.action-btn {
+    border: none;
+    background: var(--color-danger);
+    color: #ffffff;
+    border-radius: 6px;
+    padding: 0.4rem 0.9rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+}
+.action-btn:hover { background: var(--color-danger-hover); }
+
+/* Neutral variant of the same size, for non-destructive table actions */
+.action-btn-neutral {
+    background: var(--color-accent);
+}
+.action-btn-neutral:hover { background: var(--color-accent-hover); }
+
+
+/* ---------- Forms ---------- */
+
+.field-group { margin-bottom: 1.25rem; }
+
+.form-label, .auth-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: var(--color-muted);
+    display: block;
+    margin-bottom: 0.4rem;
+}
+.form-input, .form-select, .form-textarea, .auth-input {
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 0.75rem 0.9rem;
+    width: 100%;
+    font-size: 0.95rem;
+    background: #fafafa;
+    font-family: inherit;
+    transition: border-color 0.15s, background 0.15s;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus, .auth-input:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(0, 60, 113, 0.1);
+}
+.form-textarea {
+    resize: vertical;
+    min-height: 90px;
+}
+.field-hint {
+    font-size: 0.78rem;
+    color: var(--color-muted);
+    margin-top: 0.35rem;
+}
+
+
+/* ---------- Auth card (login, register, forgot, reset) ---------- */
+
+.page-overlay {
+    min-height: 100vh;
+    background: rgba(0, 25, 50, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+}
+.auth-card {
+    width: 100%;
+    max-width: 400px;
+    background: var(--color-card-bg);
+    border-radius: 16px;
+    padding: 2.75rem 2.25rem;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+}
+.auth-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+    color: #111827;
+}
+.auth-subtitle {
+    color: var(--color-muted);
+    font-size: 0.9rem;
+    margin-bottom: 2rem;
+}
+.label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.4rem;
+}
+.label-row .auth-label { margin-bottom: 0; }
+.link-small {
+    font-size: 0.8rem;
+    color: var(--color-accent);
+    font-weight: 600;
+    text-decoration: none;
+}
+.link-small:hover { text-decoration: underline; }
+.auth-btn {
+    background-color: var(--color-accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.8rem;
+    width: 100%;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: background 0.15s;
+}
+.auth-btn:hover { background-color: var(--color-accent-hover); }
+.auth-footer {
+    text-align: center;
+    margin-top: 1.75rem;
+    font-size: 0.875rem;
+    color: var(--color-muted);
+}
+.auth-footer a {
+    color: var(--color-accent);
+    font-weight: 600;
+    text-decoration: none;
+}
+.auth-footer a:hover { text-decoration: underline; }
