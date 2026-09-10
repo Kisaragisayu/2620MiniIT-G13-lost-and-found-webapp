@@ -70,6 +70,15 @@
             opacity: 0.85;
         }
 
+        .flash-message {
+            background: #fef3c7;
+            color: #78350f;
+            border: 1px solid #fcd34d;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+
         /* --- Tabs (centered) --- */
         .tab-bar {
             display: flex;
@@ -202,6 +211,7 @@
             <button class="tab-btn active" onclick="showTab('users')">Users</button>
             <button class="tab-btn" onclick="showTab('items')">Listings</button>
             <button class="tab-btn" onclick="showTab('claims')">Claims</button>
+            <button class="tab-btn" onclick="showTab('flags')">Flags</button>
         </div>
 
         <!-- USERS -->
@@ -244,6 +254,7 @@
                     <th>Type</th>
                     <th>Category</th>
                     <th>Location</th>
+                    <th>Status</th>
                     <th>Posted by</th>
                     <th></th>
                 </tr>
@@ -260,6 +271,13 @@
                         </td>
                         <td>{{ item.category }}</td>
                         <td>{{ item.location }}</td>
+                        <td>
+                            {% if item.status == 'Active' %}
+                                <span class="badge badge-approved">Active</span>
+                            {% else %}
+                                <span class="badge badge-closed">Resolved</span>
+                            {% endif %}
+                        </td>
                         <td><span class="name-chip">{{ item.reporter.name }}</span></td>
                         <td>
                             <form method="POST" action="{{ url_for('admin_remove_item', item_id=item.id) }}" onsubmit="return confirm('Remove this listing?');">
@@ -301,6 +319,41 @@
                     {% endfor %}
             </table>
         </div>
+              <!-- FLAGS -->
+        <div class="tab-panel" id="tab-flags">
+            <table class="data-table">
+                <tr>
+                    <th>Listing</th>
+                    <th>Reported by</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th></th>
+                </tr>
+                {% for flag in flags %}
+                <tr>
+                    <td>{{ flag.item.title }}</td>
+                    <td><span class="name-chip">{{ flag.reporter.name }}</span></td>
+                    <td>{{ flag.reason }}</td>
+                    <td>
+                        {% if flag.status == 'Open' %}
+                            <span class="badge badge-pending">Open</span>
+                        {% else %}
+                            <span class="badge badge-closed">Reviewed</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ flag.created_at.strftime('%Y-%m-%d') }}</td>
+                    <td>
+                        {% if flag.status == 'Open' %}
+                        <form method="POST" action="{{ url_for('admin_review_flag', flag_id=flag.id) }}">
+                            <button type="submit" class="action-btn">Mark Reviewed</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>  
     </div>
 
     <script>

@@ -6,7 +6,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 
-from models import db, User, Item, Claim
+from models import db, User, Item, Claim, Flag
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "Lost&found2620"
@@ -124,7 +124,8 @@ def admin_panel():
     users = User.query.all()
     items = Item.query.all()
     claims = Claim.query.all()
-    return render_template("admin.html", users=users, items=items, claims=claims)
+    flags = Flag.query.order_by(Flag.created_at.desc()).all()
+    return render_template("admin.html", users=users, items=items, claims=claims, flags=flags)
 
 
 @app.route("/admin/item/<int:item_id>/remove", methods=["POST"])
@@ -138,6 +139,41 @@ def admin_remove_item(item_id):
     db.session.delete(item)
     db.session.commit()
     flash(f"Listing '{item.title}' has been removed.")
+    return redirect(url_for("admin_panel"))
+
+
+@app.route("/item/<int:item_id>/flag", methods=["POST"])
+@login_required
+def flag_item(item_id):
+    item = Item.query.get_or_404(item_id)
+
+    existing = Flag.query.filter_by(item_id=item.id, reporter_id=session["user_id"]).first()
+    if existing:
+        flash("You have already reported this listing.")
+        return redirect(url_for("home"))
+
+    new_flag = Flag(
+        item_id=item.id,
+        reporter_id=session["user_id"],
+        reason=request.form["reason"].strip(),
+    )
+    db.session.add(new_flag)
+    db.session.commit()
+    flash("Thank you. This listing has been reported for review.")
+    return redirect(url_for("home"))
+
+
+@app.route("/admin/flag/<int:flag_id>/review", methods=["POST"])
+def admin_review_flag(flag_id):
+    user = current_user()
+    if not user or user.role != "admin":
+        flash("Access denied.")
+        return redirect(url_for("home"))
+
+    flag = Flag.query.get_or_404(flag_id)
+    flag.status = "Reviewed"
+    db.session.commit()
+    flash("Flag marked as reviewed.")
     return redirect(url_for("admin_panel"))
 
 
