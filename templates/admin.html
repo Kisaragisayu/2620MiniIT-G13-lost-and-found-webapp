@@ -84,13 +84,14 @@
 {% block content %}
 <div class="page-header">
     <div class="page-title">Admin Panel</div>
-    <div class="page-subtitle">Manage users, listings and claims across the system.</div>
+    <div class="page-subtitle">Manage users, listings, claims and reports across the system.</div>
 </div>
 
 <div class="tab-bar">
     <button class="tab-btn active" onclick="showTab(event, 'users')">Users</button>
     <button class="tab-btn" onclick="showTab(event, 'items')">Listings</button>
     <button class="tab-btn" onclick="showTab(event, 'claims')">Claims</button>
+    <button class="tab-btn" onclick="showTab(event, 'flags')">Flags</button>
 </div>
 
 <!-- USERS -->
@@ -133,6 +134,7 @@
             <th>Type</th>
             <th>Category</th>
             <th>Location</th>
+            <th>Status</th>
             <th>Posted by</th>
             <th></th>
         </tr>
@@ -148,6 +150,13 @@
             </td>
             <td>{{ item.category }}</td>
             <td>{{ item.location }}</td>
+            <td>
+                {% if item.status == 'Active' %}
+                    <span class="badge badge-approved">Active</span>
+                {% else %}
+                    <span class="badge badge-closed">Resolved</span>
+                {% endif %}
+            </td>
             <td><span class="name-chip">{{ item.reporter.name }}</span></td>
             <td>
                 <form method="POST" action="{{ url_for('admin_remove_item', item_id=item.id) }}"
@@ -185,6 +194,43 @@
                 {% endif %}
             </td>
             <td>{{ claim.created_at.strftime('%Y-%m-%d') }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+<!-- FLAGS -->
+<div class="tab-panel" id="tab-flags">
+    <table class="data-table">
+        <tr>
+            <th>Listing</th>
+            <th>Reported by</th>
+            <th>Reason</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th></th>
+        </tr>
+        {% for flag in flags %}
+        <tr>
+            <td>{{ flag.item.title }}</td>
+            <td><span class="name-chip">{{ flag.reporter.name }}</span></td>
+            <td>{{ flag.reason }}</td>
+            <td>
+                {% if flag.status == 'Open' %}
+                    <span class="badge badge-pending">Open</span>
+                {% else %}
+                    <span class="badge badge-closed">Reviewed</span>
+                {% endif %}
+            </td>
+            <td>{{ flag.created_at.strftime('%Y-%m-%d') }}</td>
+            <td>
+                {% if flag.status == 'Open' %}
+                <form method="POST" action="{{ url_for('admin_review_flag', flag_id=flag.id) }}"
+                      data-confirm="Mark this report as reviewed?">
+                    <button type="submit" class="action-btn">Mark Reviewed</button>
+                </form>
+                {% endif %}
+            </td>
         </tr>
         {% endfor %}
     </table>

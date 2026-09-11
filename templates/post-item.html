@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Post an Item — MMU Lost &amp; Found{% endblock %}
+{% block title %}{% if editing %}Edit Listing{% else %}Post an Item{% endif %} — MMU Lost &amp; Found{% endblock %}
 
 {% block styles %}
 <style>
@@ -59,13 +59,18 @@
 </style>
 {% endblock %}
 
-{# This page uses its own narrow wrapper instead of .container, so it
-   overrides the whole body block and prints the flash messages itself. #}
+{# Own narrow wrapper instead of .container, so the whole body block is overridden
+   and the flash messages are printed here. #}
 {% block body %}
 <div class="form-wrapper">
     <div class="form-card">
-        <div class="form-title">Report a Lost or Found Item</div>
-        <div class="form-subtitle">Fill in the details below. The more specific you are, the easier it is to reconnect items with owners.</div>
+        {% if editing %}
+            <div class="form-title">Edit Listing</div>
+            <div class="form-subtitle">Update the details of your listing.</div>
+        {% else %}
+            <div class="form-title">Report a Lost or Found Item</div>
+            <div class="form-subtitle">Fill in the details below. The more specific you are, the easier it is to reconnect items with owners.</div>
+        {% endif %}
 
         {% with messages = get_flashed_messages() %}
             {% for msg in messages %}
@@ -73,8 +78,12 @@
             {% endfor %}
         {% endwith %}
 
-        <form action="{{ url_for('post_item') }}" method="POST" enctype="multipart/form-data">
+        <form action="{% if editing %}{{ url_for('edit_item', item_id=item.id) }}{% else %}{{ url_for('post_item') }}{% endif %}"
+              method="POST" enctype="multipart/form-data">
 
+            {# The edit route only updates title, description, category, location and
+               hidden detail, so type, date and photo are hidden while editing. #}
+            {% if not editing %}
             <div class="form-row">
                 <div>
                     <label class="form-label">This item is</label>
@@ -88,15 +97,20 @@
                     <input type="date" name="date_lost_found" class="form-input" required>
                 </div>
             </div>
+            {% endif %}
 
             <div class="field-group">
                 <label class="form-label">Title</label>
-                <input type="text" name="title" class="form-input" placeholder="e.g. Blue water bottle" required>
+                <input type="text" name="title" class="form-input"
+                       placeholder="e.g. Blue water bottle"
+                       value="{{ item.title if editing else '' }}" required>
             </div>
 
             <div class="field-group">
                 <label class="form-label">Description</label>
-                <textarea name="description" class="form-textarea" placeholder="Describe the item — colour, brand, condition, anything visible." required></textarea>
+                <textarea name="description" class="form-textarea"
+                          placeholder="Describe the item — colour, brand, condition, anything visible."
+                          required>{{ item.description if editing else '' }}</textarea>
                 <div class="field-hint">This is shown publicly. Don't include details only the owner would know.</div>
             </div>
 
@@ -104,46 +118,40 @@
                 <div>
                     <label class="form-label">Category</label>
                     <select name="category" class="form-select" required>
-                        <option>Student ID / Matric Card</option>
-                        <option>Wallet</option>
-                        <option>Phone</option>
-                        <option>Charger / Cable</option>
-                        <option>Water Bottle</option>
-                        <option>Umbrella</option>
-                        <option>Bag</option>
-                        <option>Keys</option>
-                        <option>Other</option>
+                        {% for c in categories %}
+                            <option {% if editing and c == item.category %}selected{% endif %}>{{ c }}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 <div>
                     <label class="form-label">Location</label>
                     <select name="location" class="form-select" required>
-                        <option>FCI</option>
-                        <option>FOE</option>
-                        <option>FCM</option>
-                        <option>Library</option>
-                        <option>Arked</option>
-                        <option>Bus Stop</option>
-                        <option>Hostel Block</option>
-                        <option>Sports Complex</option>
-                        <option>Other</option>
+                        {% for l in locations %}
+                            <option {% if editing and l == item.location %}selected{% endif %}>{{ l }}</option>
+                        {% endfor %}
                     </select>
                 </div>
             </div>
 
+            {% if not editing %}
             <div class="field-group">
                 <label class="form-label">Photo (optional)</label>
                 <input type="file" name="photo" class="form-input" accept=".png,.jpg,.jpeg,.gif">
                 <div class="field-hint">A photo helps people recognise the item at a glance.</div>
             </div>
+            {% endif %}
 
             <div class="hidden-detail-box">
                 <label class="form-label">Hidden identifying detail</label>
-                <input type="text" name="hidden_detail" class="form-input" placeholder="e.g. small crack near the cap, name written inside">
+                <input type="text" name="hidden_detail" class="form-input"
+                       placeholder="e.g. small crack near the cap, name written inside"
+                       value="{{ item.hidden_detail if editing else '' }}">
                 <div class="field-hint">Kept private. Claimants must describe this correctly to prove the item is theirs.</div>
             </div>
 
-            <button type="submit" class="submit-btn">Post Item</button>
+            <button type="submit" class="submit-btn">
+                {% if editing %}Save Changes{% else %}Post Item{% endif %}
+            </button>
         </form>
     </div>
 </div>

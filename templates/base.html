@@ -13,10 +13,10 @@
         <a href="{{ url_for('home') }}" class="navbar-brand">MMU Lost &amp; Found</a>
         <div class="navbar-links">
             <a href="{{ url_for('home') }}" class="btn-outline">Browse</a>
-            {% if session.get('user_id') %}
+            {% if current_user %}
                 <a href="{{ url_for('post_item') }}" class="btn-outline">+ Post Item</a>
-                {% if session.get('role') == 'admin' %}
-                    <a href="{{ url_for('admin') }}" class="btn-outline">Admin</a>
+                {% if current_user.role == 'admin' %}
+                    <a href="{{ url_for('admin_panel') }}" class="btn-outline">Admin</a>
                 {% endif %}
                 <a href="{{ url_for('logout') }}" class="btn-outline"
                    data-confirm="Log out of your account?">Logout</a>

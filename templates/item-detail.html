@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Item Details — MMU Lost &amp; Found{% endblock %}
+{% block title %}{{ item.title }} — MMU Lost &amp; Found{% endblock %}
 {% block container_class %}container-narrow{% endblock %}
 
 {% block styles %}
@@ -32,6 +32,13 @@
         color: var(--color-muted);
         font-size: 0.9rem;
         border: 1px solid var(--color-border);
+        overflow: hidden;
+    }
+    .item-photo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
     }
     .info-card {
         background: var(--color-card-bg);
@@ -54,6 +61,7 @@
         line-height: 1.55;
         color: #374151;
         margin-bottom: 1.5rem;
+        white-space: pre-line;
     }
     .meta-list {
         border-top: 1px solid var(--color-border);
@@ -93,6 +101,7 @@
         display: flex;
         gap: 0.6rem;
         flex-wrap: wrap;
+        align-items: center;
     }
     .owner-actions form { display: inline; }
 
@@ -132,17 +141,23 @@
         text-decoration: none;
     }
 
-    .state-label {
-        background: #fffbeb;
-        border: 1px dashed #fcd34d;
-        color: #92400e;
-        font-size: 0.8rem;
-        font-weight: 600;
-        padding: 0.5rem 0.8rem;
-        border-radius: 8px;
+    .report-row {
         margin-top: 1.5rem;
-        margin-bottom: -0.5rem;
+        text-align: right;
     }
+    .report-toggle {
+        background: none;
+        border: none;
+        color: var(--color-muted);
+        font-size: 0.83rem;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+        text-decoration: underline;
+    }
+    .report-toggle:hover { color: var(--color-danger); }
+    .report-box { display: none; margin-top: 0.9rem; }
+    .report-box.open { display: block; }
 
     @media (max-width: 720px) {
         .detail-grid { grid-template-columns: 1fr; }
@@ -154,113 +169,166 @@
 <a href="{{ url_for('home') }}" class="back-link">&larr; Back to listings</a>
 
 <div class="detail-grid">
-    <div class="item-photo">No photo</div>
+    <div class="item-photo">
+        {% if item.image_filename %}
+            <img src="{{ url_for('static', filename='uploads/' ~ item.image_filename) }}"
+                 alt="{{ item.title }}">
+        {% else %}
+            No photo
+        {% endif %}
+    </div>
 
     <div class="info-card">
         <div class="badge-row">
-            <span class="badge badge-found">Found</span>
-            <span class="badge badge-active">Active</span>
+            {% if item.item_type == 'Lost' %}
+                <span class="badge badge-lost">Lost</span>
+            {% else %}
+                <span class="badge badge-found">Found</span>
+            {% endif %}
+            {% if item.status == 'Active' %}
+                <span class="badge badge-active">Active</span>
+            {% else %}
+                <span class="badge badge-resolved">Resolved</span>
+            {% endif %}
         </div>
 
-        <div class="item-title">Blue Water Bottle</div>
-        <div class="item-description">
-            Blue stainless steel water bottle, roughly 750ml. Found on a bench outside the FCI building in the late afternoon. Handed nothing in yet, still holding it.
-        </div>
+        <div class="item-title">{{ item.title }}</div>
+        <div class="item-description">{{ item.description }}</div>
 
         <div class="meta-list">
             <div class="meta-row">
                 <span class="meta-label">Category</span>
-                <span>Water Bottle</span>
+                <span>{{ item.category }}</span>
             </div>
             <div class="meta-row">
                 <span class="meta-label">Location</span>
-                <span>FCI</span>
+                <span>{{ item.location }}</span>
             </div>
             <div class="meta-row">
-                <span class="meta-label">Date Found</span>
-                <span>2026-08-28</span>
+                <span class="meta-label">Date {{ item.item_type }}</span>
+                <span>{{ item.date_lost_found }}</span>
             </div>
             <div class="meta-row">
                 <span class="meta-label">Posted by</span>
-                <span class="name-chip">Temirlan</span>
+                <span class="name-chip">{{ item.reporter.name }}</span>
             </div>
         </div>
     </div>
 </div>
 
-<!-- ============================================================
-     STATE 1 — Visitor is the OWNER of this listing
-     At integration wrap in:
-     {% raw %}{% if current_user and current_user.id == item.user_id %}{% endraw %}
-     ============================================================ -->
-<div class="state-label">STATE 1 — owner view (remove this label later)</div>
 
-<div class="section">
-    <div class="section-title">Manage this listing</div>
-    <div class="section-hint">Edit the details, mark it resolved if handed over in person, or delete it.</div>
-    <div class="owner-actions">
-        <a href="#" class="btn-secondary">Edit</a>
-        <button class="btn-success" data-confirm="Mark this listing as resolved?">Mark as Resolved</button>
-        <button class="btn-danger" data-confirm="Delete this listing? This cannot be undone.">Delete</button>
-    </div>
-</div>
+{% if current_user and current_user.id == item.user_id %}
+    {# ---------- The visitor owns this listing ---------- #}
 
-<div class="section">
-    <div class="section-title">Claims on this item</div>
-    <div class="section-hint">Compare each description against the hidden detail you saved when posting.</div>
+    <div class="section">
+        <div class="section-title">Manage this listing</div>
+        <div class="section-hint">Edit the details, mark it resolved if handed over in person, or delete it.</div>
+        <div class="owner-actions">
+            <a href="{{ url_for('edit_item', item_id=item.id) }}" class="btn-secondary">Edit</a>
 
-    <div class="claim-card">
-        <div class="claim-head">
-            <span class="name-chip">Mustafa Yusupov</span>
-            <span class="badge badge-pending">Pending</span>
-        </div>
-        <div class="claim-message">
-            It has a small dent near the base and a faded sticker of a mountain on the side. My name is scratched into the bottom.
-        </div>
-        <div class="claim-actions">
-            <button class="btn-success" data-confirm="Approve this claim? Other pending claims will be closed.">Approve</button>
-            <button class="btn-danger" data-confirm="Reject this claim?">Reject</button>
+            {% if item.status == 'Active' %}
+            <form method="POST" action="{{ url_for('resolve_item', item_id=item.id) }}"
+                  data-confirm="Mark this listing as resolved?">
+                <button type="submit" class="btn-success">Mark as Resolved</button>
+            </form>
+            {% endif %}
+
+            <form method="POST" action="{{ url_for('delete_item', item_id=item.id) }}"
+                  data-confirm="Delete this listing? This cannot be undone.">
+                <button type="submit" class="btn-danger">Delete</button>
+            </form>
         </div>
     </div>
 
-    <div class="claim-card">
-        <div class="claim-head">
-            <span class="name-chip">Omar</span>
-            <span class="badge badge-rejected">Rejected</span>
+    <div class="section">
+        <div class="section-title">Claims on this item</div>
+        <div class="section-hint">Compare each description against the hidden detail you saved when posting.</div>
+
+        {% for claim in claims %}
+        <div class="claim-card">
+            <div class="claim-head">
+                <span class="name-chip">{{ claim.claimant.name }}</span>
+                {% if claim.status == 'Pending' %}
+                    <span class="badge badge-pending">Pending</span>
+                {% elif claim.status == 'Approved' %}
+                    <span class="badge badge-approved">Approved</span>
+                {% elif claim.status == 'Rejected' %}
+                    <span class="badge badge-rejected">Rejected</span>
+                {% else %}
+                    <span class="badge badge-closed">Closed</span>
+                {% endif %}
+            </div>
+            <div class="claim-message">{{ claim.message }}</div>
+
+            {% if claim.status == 'Pending' %}
+            <div class="claim-actions">
+                <!-- TODO: Omar's claim routes. Once they exist, point these at
+                     url_for('approve_claim', claim_id=claim.id) and
+                     url_for('reject_claim', claim_id=claim.id). -->
+                <form method="POST" action="#" data-confirm="Approve this claim? Other pending claims will be closed.">
+                    <button type="submit" class="btn-success">Approve</button>
+                </form>
+                <form method="POST" action="#" data-confirm="Reject this claim?">
+                    <button type="submit" class="btn-danger">Reject</button>
+                </form>
+            </div>
+            {% else %}
+            <div class="claim-date">Submitted {{ claim.created_at.strftime('%Y-%m-%d') }}</div>
+            {% endif %}
         </div>
-        <div class="claim-message">
-            I think it's mine, I lost a blue bottle last week.
+        {% else %}
+        <div class="section-hint" style="margin-bottom:0;">No claims on this listing yet.</div>
+        {% endfor %}
+    </div>
+
+{% elif current_user %}
+    {# ---------- Logged in, but not the owner ---------- #}
+
+    {% if item.status == 'Active' %}
+    <div class="section">
+        <div class="section-title">Think this is yours?</div>
+        <div class="section-hint">Describe a specific detail that isn't in the public description — something only the real owner would know.</div>
+        <!-- TODO: Omar's claim routes. Point this at url_for('submit_claim', item_id=item.id). -->
+        <form action="#" method="POST">
+            <textarea name="message" class="form-textarea"
+                      placeholder="e.g. there's a dent near the base and a sticker on the side..." required></textarea>
+            <button type="submit" class="btn-primary">Submit Claim</button>
+        </form>
+    </div>
+    {% else %}
+    <div class="section">
+        <div class="login-note">This listing has been marked as resolved, so it is no longer accepting claims.</div>
+    </div>
+    {% endif %}
+
+    <div class="report-row">
+        <button type="button" class="report-toggle" onclick="toggleReport()">Report this listing</button>
+        <div class="report-box" id="report-box">
+            <form method="POST" action="{{ url_for('flag_item', item_id=item.id) }}"
+                  data-confirm="Send this report to the admins?">
+                <textarea name="reason" class="form-textarea"
+                          placeholder="Why are you reporting this listing?" required></textarea>
+                <button type="submit" class="btn-danger">Send Report</button>
+            </form>
         </div>
-        <div class="claim-date">Submitted 2026-08-29</div>
     </div>
-</div>
 
-<!-- ============================================================
-     STATE 2 — Visitor is logged in but NOT the owner
-     At integration wrap in:
-     {% raw %}{% elif current_user and item.status == 'Active' %}{% endraw %}
-     ============================================================ -->
-<div class="state-label">STATE 2 — logged-in visitor view (remove this label later)</div>
+{% else %}
+    {# ---------- Not logged in ---------- #}
 
-<div class="section">
-    <div class="section-title">Think this is yours?</div>
-    <div class="section-hint">Describe a specific detail that isn't in the public description — something only the real owner would know.</div>
-    <form action="#" method="POST">
-        <textarea name="message" class="form-textarea" placeholder="e.g. there's a dent near the base and a sticker on the side..." required></textarea>
-        <button type="submit" class="btn-primary">Submit Claim</button>
-    </form>
-</div>
-
-<!-- ============================================================
-     STATE 3 — Visitor is NOT logged in
-     At integration wrap in:
-     {% raw %}{% else %} ... {% endif %}{% endraw %}
-     ============================================================ -->
-<div class="state-label">STATE 3 — guest view (remove this label later)</div>
-
-<div class="section">
-    <div class="login-note">
-        <a href="{{ url_for('login') }}">Log in</a> with your MMU account to submit a claim on this item.
+    <div class="section">
+        <div class="login-note">
+            <a href="{{ url_for('login') }}">Log in</a> with your MMU account to submit a claim on this item.
+        </div>
     </div>
-</div>
+
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function toggleReport() {
+        document.getElementById('report-box').classList.toggle('open');
+    }
+</script>
 {% endblock %}

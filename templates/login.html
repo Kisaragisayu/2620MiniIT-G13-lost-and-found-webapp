@@ -16,7 +16,10 @@
     <div class="field-group">
         <div class="label-row">
             <span class="auth-label">Password</span>
-            <a href="{{ url_for('forgot_password') }}" class="link-small">Forgot password?</a>
+            <!-- TODO: Omar's password recovery routes.
+                 Once /forgot-password exists, change this to
+                 {% raw %}{{ url_for('forgot_password') }}{% endraw %} -->
+            <a href="#" class="link-small">Forgot password?</a>
         </div>
         <input type="password" name="password" class="auth-input" placeholder="••••••••">
     </div>

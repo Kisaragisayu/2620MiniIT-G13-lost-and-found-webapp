@@ -66,6 +66,13 @@
         justify-content: center;
         color: var(--color-muted);
         font-size: 0.85rem;
+        overflow: hidden;
+    }
+    .item-photo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
     }
     .item-body { padding: 1rem; }
     .item-body .badge { margin-bottom: 0.6rem; }
@@ -79,6 +86,15 @@
         color: var(--color-muted);
         margin-bottom: 0.2rem;
     }
+    .no-results {
+        background: var(--color-card-bg);
+        border: 1px solid var(--color-border);
+        border-radius: 12px;
+        padding: 3rem 1.5rem;
+        text-align: center;
+        color: var(--color-muted);
+        font-size: 0.95rem;
+    }
 </style>
 {% endblock %}
 
@@ -86,101 +102,54 @@
 <div class="page-title">Lost &amp; Found Listings</div>
 
 <form action="{{ url_for('home') }}" method="GET" class="filter-bar">
-    <input type="text" name="keyword" class="filter-input" placeholder="Search by keyword...">
+    <input type="text" name="keyword" class="filter-input"
+           placeholder="Search by keyword..." value="{{ keyword }}">
 
     <select name="category" class="filter-select">
         <option value="">All Categories</option>
-        <option>Student ID / Matric Card</option>
-        <option>Wallet</option>
-        <option>Phone</option>
-        <option>Charger / Cable</option>
-        <option>Water Bottle</option>
-        <option>Umbrella</option>
-        <option>Bag</option>
-        <option>Keys</option>
-        <option>Other</option>
+        {% for c in categories %}
+            <option {% if c == selected_category %}selected{% endif %}>{{ c }}</option>
+        {% endfor %}
     </select>
 
     <select name="location" class="filter-select">
         <option value="">All Locations</option>
-        <option>FCI</option>
-        <option>FOE</option>
-        <option>FCM</option>
-        <option>Library</option>
-        <option>Arked</option>
-        <option>Bus Stop</option>
-        <option>Hostel Block</option>
-        <option>Sports Complex</option>
-        <option>Other</option>
+        {% for l in locations %}
+            <option {% if l == selected_location %}selected{% endif %}>{{ l }}</option>
+        {% endfor %}
     </select>
 
     <button type="submit" class="filter-btn">Search</button>
 </form>
 
+{% if items %}
 <div class="item-grid">
-
-    <!-- Still hardcoded. Browse Page Integration replaces this whole block with:
-         {% raw %}{% for item in items %} ... {% endfor %}{% endraw %} -->
-
-    <a href="#" class="item-card">
-        <div class="item-photo">No photo</div>
+    {% for item in items %}
+    <a href="{{ url_for('item_detail', item_id=item.id) }}" class="item-card">
+        <div class="item-photo">
+            {% if item.image_filename %}
+                <img src="{{ url_for('static', filename='uploads/' ~ item.image_filename) }}"
+                     alt="{{ item.title }}">
+            {% else %}
+                No photo
+            {% endif %}
+        </div>
         <div class="item-body">
-            <span class="badge badge-found">Found</span>
-            <div class="item-title">Blue Water Bottle</div>
-            <div class="item-meta">Water Bottle &middot; FCI</div>
-            <div class="item-meta">2026-08-28</div>
+            {% if item.item_type == 'Lost' %}
+                <span class="badge badge-lost">Lost</span>
+            {% else %}
+                <span class="badge badge-found">Found</span>
+            {% endif %}
+            <div class="item-title">{{ item.title }}</div>
+            <div class="item-meta">{{ item.category }} &middot; {{ item.location }}</div>
+            <div class="item-meta">{{ item.date_lost_found }}</div>
         </div>
     </a>
-
-    <a href="#" class="item-card">
-        <div class="item-photo">No photo</div>
-        <div class="item-body">
-            <span class="badge badge-lost">Lost</span>
-            <div class="item-title">Black Umbrella</div>
-            <div class="item-meta">Umbrella &middot; Library</div>
-            <div class="item-meta">2026-08-27</div>
-        </div>
-    </a>
-
-    <a href="#" class="item-card">
-        <div class="item-photo">No photo</div>
-        <div class="item-body">
-            <span class="badge badge-found">Found</span>
-            <div class="item-title">Student ID Card</div>
-            <div class="item-meta">Student ID / Matric Card &middot; Arked</div>
-            <div class="item-meta">2026-08-26</div>
-        </div>
-    </a>
-
-    <a href="#" class="item-card">
-        <div class="item-photo">No photo</div>
-        <div class="item-body">
-            <span class="badge badge-lost">Lost</span>
-            <div class="item-title">USB-C Charger</div>
-            <div class="item-meta">Charger / Cable &middot; FOE</div>
-            <div class="item-meta">2026-08-25</div>
-        </div>
-    </a>
-
-    <a href="#" class="item-card">
-        <div class="item-photo">No photo</div>
-        <div class="item-body">
-            <span class="badge badge-found">Found</span>
-            <div class="item-title">Brown Leather Wallet</div>
-            <div class="item-meta">Wallet &middot; Bus Stop</div>
-            <div class="item-meta">2026-08-24</div>
-        </div>
-    </a>
-
-    <a href="#" class="item-card">
-        <div class="item-photo">No photo</div>
-        <div class="item-body">
-            <span class="badge badge-lost">Lost</span>
-            <div class="item-title">Set of Keys</div>
-            <div class="item-meta">Keys &middot; Sports Complex</div>
-            <div class="item-meta">2026-08-23</div>
-        </div>
-    </a>
-
+    {% endfor %}
 </div>
+{% else %}
+<div class="no-results">
+    No listings match your search yet.
+</div>
+{% endif %}
 {% endblock %}

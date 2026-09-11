@@ -43,3 +43,15 @@ class Claim(db.Model):
     message = db.Column(db.Text, nullable=False)
     status = db.Column(db.String(20), default="Pending")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class Flag(db.Model):
+    __tablename__ = "flags"
+    id = db.Column(db.Integer, primary_key=True)
+    item_id = db.Column(db.Integer, db.ForeignKey("items.id"), nullable=False)
+    reporter_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    reason = db.Column(db.Text, nullable=False)
+    status = db.Column(db.String(20), default="Open")
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    item = db.relationship("Item", backref="flags")
+    reporter = db.relationship("User", foreign_keys=[reporter_id])
