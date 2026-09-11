@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+
+{% block title %}{{ item.title }} — MMU Lost &amp; Found{% endblock %}
+{% block container_class %}container-narrow{% endblock %}
+
+{% block styles %}
+<style>
+    .back-link {
+        display: inline-block;
+        color: var(--color-muted);
+        text-decoration: none;
+        font-size: 0.88rem;
+        font-weight: 600;
+        margin-bottom: 1.25rem;
+    }
+    .back-link:hover { color: var(--color-accent); }
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        align-items: start;
+    }
+    .item-photo {
+        width: 100%;
+        height: 340px;
+        background: #e5e7eb;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--color-muted);
+        font-size: 0.9rem;
+        border: 1px solid var(--color-border);
+        overflow: hidden;
+    }
+    .item-photo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+    .info-card {
+        background: var(--color-card-bg);
+        border: 1px solid var(--color-border);
+        border-radius: 14px;
+        padding: 1.75rem;
+    }
+    .badge-row {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 0.9rem;
+    }
+    .item-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.6rem;
+    }
+    .item-description {
+        font-size: 0.95rem;
+        line-height: 1.55;
+        color: #374151;
+        margin-bottom: 1.5rem;
+        white-space: pre-line;
+    }
+    .meta-list {
+        border-top: 1px solid var(--color-border);
+        padding-top: 1.1rem;
+    }
+    .meta-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        font-size: 0.9rem;
+    }
+    .meta-label {
+        color: var(--color-muted);
+        font-weight: 600;
+    }
+
+    .section {
+        background: var(--color-card-bg);
+        border: 1px solid var(--color-border);
+        border-radius: 14px;
+        padding: 1.75rem;
+        margin-top: 1.5rem;
+    }
+    .section-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        margin-bottom: 0.4rem;
+    }
+    .section-hint {
+        font-size: 0.86rem;
+        color: var(--color-muted);
+        margin-bottom: 1.25rem;
+    }
+    .section .form-textarea { margin-bottom: 0.9rem; }
+
+    .owner-actions {
+        display: flex;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    .owner-actions form { display: inline; }
+
+    .claim-card {
+        border: 1px solid var(--color-border);
+        border-radius: 10px;
+        padding: 1.1rem;
+        margin-bottom: 0.85rem;
+        background: #fafbfc;
+    }
+    .claim-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.7rem;
+    }
+    .claim-message {
+        font-size: 0.92rem;
+        line-height: 1.5;
+        color: #374151;
+        margin-bottom: 0.9rem;
+    }
+    .claim-actions { display: flex; gap: 0.5rem; }
+    .claim-actions form { display: inline; }
+    .claim-date {
+        font-size: 0.8rem;
+        color: var(--color-muted);
+    }
+
+    .login-note {
+        font-size: 0.92rem;
+        color: var(--color-muted);
+    }
+    .login-note a {
+        color: var(--color-accent);
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .report-row {
+        margin-top: 1.5rem;
+        text-align: right;
+    }
+    .report-toggle {
+        background: none;
+        border: none;
+        color: var(--color-muted);
+        font-size: 0.83rem;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+        text-decoration: underline;
+    }
+    .report-toggle:hover { color: var(--color-danger); }
+    .report-box { display: none; margin-top: 0.9rem; }
+    .report-box.open { display: block; }
+
+    @media (max-width: 720px) {
+        .detail-grid { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('home') }}" class="back-link">&larr; Back to listings</a>
+
+<div class="detail-grid">
+    <div class="item-photo">
+        {% if item.image_filename %}
+            <img src="{{ url_for('static', filename='uploads/' ~ item.image_filename) }}"
+                 alt="{{ item.title }}">
+        {% else %}
+            No photo
+        {% endif %}
+    </div>
+
+    <div class="info-card">
+        <div class="badge-row">
+            {% if item.item_type == 'Lost' %}
+                <span class="badge badge-lost">Lost</span>
+            {% else %}
+                <span class="badge badge-found">Found</span>
+            {% endif %}
+            {% if item.status == 'Active' %}
+                <span class="badge badge-active">Active</span>
+            {% else %}
+                <span class="badge badge-resolved">Resolved</span>
+            {% endif %}
+        </div>
+
+        <div class="item-title">{{ item.title }}</div>
+        <div class="item-description">{{ item.description }}</div>
+
+        <div class="meta-list">
+            <div class="meta-row">
+                <span class="meta-label">Category</span>
+                <span>{{ item.category }}</span>
+            </div>
+            <div class="meta-row">
+                <span class="meta-label">Location</span>
+                <span>{{ item.location }}</span>
+            </div>
+            <div class="meta-row">
+                <span class="meta-label">Date {{ item.item_type }}</span>
+                <span>{{ item.date_lost_found }}</span>
+            </div>
+            <div class="meta-row">
+                <span class="meta-label">Posted by</span>
+                <span class="name-chip">{{ item.reporter.name }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% if current_user and current_user.id == item.user_id %}
+    {# ---------- The visitor owns this listing ---------- #}
+
+    <div class="section">
+        <div class="section-title">Manage this listing</div>
+        <div class="section-hint">Edit the details, mark it resolved if handed over in person, or delete it.</div>
+        <div class="owner-actions">
+            <a href="{{ url_for('edit_item', item_id=item.id) }}" class="btn-secondary">Edit</a>
+
+            {% if item.status == 'Active' %}
+            <form method="POST" action="{{ url_for('resolve_item', item_id=item.id) }}"
+                  data-confirm="Mark this listing as resolved?">
+                <button type="submit" class="btn-success">Mark as Resolved</button>
+            </form>
+            {% endif %}
+
+            <form method="POST" action="{{ url_for('delete_item', item_id=item.id) }}"
+                  data-confirm="Delete this listing? This cannot be undone.">
+                <button type="submit" class="btn-danger">Delete</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Claims on this item</div>
+        <div class="section-hint">Compare each description against the hidden detail you saved when posting.</div>
+
+        {% for claim in claims %}
+        <div class="claim-card">
+            <div class="claim-head">
+                <span class="name-chip">{{ claim.claimant.name }}</span>
+                {% if claim.status == 'Pending' %}
+                    <span class="badge badge-pending">Pending</span>
+                {% elif claim.status == 'Approved' %}
+                    <span class="badge badge-approved">Approved</span>
+                {% elif claim.status == 'Rejected' %}
+                    <span class="badge badge-rejected">Rejected</span>
+                {% else %}
+                    <span class="badge badge-closed">Closed</span>
+                {% endif %}
+            </div>
+            <div class="claim-message">{{ claim.message }}</div>
+
+            {% if claim.status == 'Pending' %}
+            <div class="claim-actions">
+                <!-- TODO: Omar's claim routes. Once they exist, point these at
+                     url_for('approve_claim', claim_id=claim.id) and
+                     url_for('reject_claim', claim_id=claim.id). -->
+                <form method="POST" action="#" data-confirm="Approve this claim? Other pending claims will be closed.">
+                    <button type="submit" class="btn-success">Approve</button>
+                </form>
+                <form method="POST" action="#" data-confirm="Reject this claim?">
+                    <button type="submit" class="btn-danger">Reject</button>
+                </form>
+            </div>
+            {% else %}
+            <div class="claim-date">Submitted {{ claim.created_at.strftime('%Y-%m-%d') }}</div>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="section-hint" style="margin-bottom:0;">No claims on this listing yet.</div>
+        {% endfor %}
+    </div>
+
+{% elif current_user %}
+    {# ---------- Logged in, but not the owner ---------- #}
+
+    {% if item.status == 'Active' %}
+    <div class="section">
+        <div class="section-title">Think this is yours?</div>
+        <div class="section-hint">Describe a specific detail that isn't in the public description — something only the real owner would know.</div>
+        <!-- TODO: Omar's claim routes. Point this at url_for('submit_claim', item_id=item.id). -->
+        <form action="#" method="POST">
+            <textarea name="message" class="form-textarea"
+                      placeholder="e.g. there's a dent near the base and a sticker on the side..." required></textarea>
+            <button type="submit" class="btn-primary">Submit Claim</button>
+        </form>
+    </div>
+    {% else %}
+    <div class="section">
+        <div class="login-note">This listing has been marked as resolved, so it is no longer accepting claims.</div>
+    </div>
+    {% endif %}
+
+    <div class="report-row">
+        <button type="button" class="report-toggle" onclick="toggleReport()">Report this listing</button>
+        <div class="report-box" id="report-box">
+            <form method="POST" action="{{ url_for('flag_item', item_id=item.id) }}"
+                  data-confirm="Send this report to the admins?">
+                <textarea name="reason" class="form-textarea"
+                          placeholder="Why are you reporting this listing?" required></textarea>
+                <button type="submit" class="btn-danger">Send Report</button>
+            </form>
+        </div>
+    </div>
+
+{% else %}
+    {# ---------- Not logged in ---------- #}
+
+    <div class="section">
+        <div class="login-note">
+            <a href="{{ url_for('login') }}">Log in</a> with your MMU account to submit a claim on this item.
+        </div>
+    </div>
+
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function toggleReport() {
+        document.getElementById('report-box').classList.toggle('open');
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}MMU Lost &amp; Found{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block styles %}{% endblock %}
+</head>
+<body class="app-body">
+
+    <nav class="navbar">
+        <a href="{{ url_for('home') }}" class="navbar-brand">MMU Lost &amp; Found</a>
+        <div class="navbar-links">
+            <a href="{{ url_for('home') }}" class="btn-outline">Browse</a>
+            {% if current_user %}
+                <a href="{{ url_for('post_item') }}" class="btn-outline">+ Post Item</a>
+                {% if current_user.role == 'admin' %}
+                    <a href="{{ url_for('admin_panel') }}" class="btn-outline">Admin</a>
+                {% endif %}
+                <a href="{{ url_for('logout') }}" class="btn-outline"
+                   data-confirm="Log out of your account?">Logout</a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="btn-white">Login</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    {% block body %}
+    <div class="container {% block container_class %}{% endblock %}">
+        {% with messages = get_flashed_messages() %}
+            {% for msg in messages %}
+                <div class="flash-message">{{ msg }}</div>
+            {% endfor %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+    {% endblock %}
+
+    <script>
+        /* Any element carrying data-confirm asks before it goes through.
+           Works on links, buttons and forms:
+             <a href="..." data-confirm="Log out?">Logout</a>
+             <form method="POST" data-confirm="Remove this listing?">
+             <button data-confirm="Delete this item?">Delete</button>          */
+        document.addEventListener('click', function (event) {
+            var el = event.target.closest('[data-confirm]');
+            if (!el || el.tagName === 'FORM') return;
+            if (!confirm(el.getAttribute('data-confirm'))) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+        });
+
+        document.addEventListener('submit', function (event) {
+            var form = event.target.closest('form[data-confirm]');
+            if (!form) return;
+            if (!confirm(form.getAttribute('data-confirm'))) {
+                event.preventDefault();
+            }
+        });
+    </script>
+
+    {% block scripts %}{% endblock %}
+
+</body>
+</html>
