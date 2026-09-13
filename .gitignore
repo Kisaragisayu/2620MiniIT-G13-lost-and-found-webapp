@@ -2,5 +2,6 @@ venv/
 __pycache__/
 *.pyc
 lostfound.db
-instance/static/uploads/*
+instance/
+static/uploads/*
 !static/uploads/.gitkeep
