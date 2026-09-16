@@ -98,6 +98,9 @@ def login():
         user = User.query.filter_by(email=email).first()
 
         if user and check_password_hash(user.password_hash, password):
+            if user.is_banned:
+                flash("This account has been suspended.")
+                return redirect(url_for("login"))
             session["user_id"] = user.id
             flash(f"Welcome back, {user.name}!")
             return redirect(url_for("home"))
@@ -268,7 +271,32 @@ def resolve_item(item_id):
     return redirect(url_for("item_detail", item_id=item.id))
 
 
+@app.route("/admin/user/<int:user_id>/ban", methods=["POST"])
+def admin_ban_user(user_id):
+    admin = current_user()
+    if not admin or admin.role != "admin":
+        flash("Access denied.")
+        return redirect(url_for("home"))
+
+    target = User.query.get_or_404(user_id)
+
+    if target.role == "admin":
+        flash("Admin accounts cannot be banned.")
+        return redirect(url_for("admin_panel"))
+
+    target.is_banned = not target.is_banned
+    db.session.commit()
+
+    if target.is_banned:
+        flash(f"{target.name} has been banned.")
+    else:
+        flash(f"{target.name} has been unbanned.")
+
+    return redirect(url_for("admin_panel"))
+
+
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
     app.run(debug=True)
+    
