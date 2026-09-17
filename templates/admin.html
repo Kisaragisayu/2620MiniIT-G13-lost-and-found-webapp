@@ -35,6 +35,7 @@
         cursor: pointer;
         font-family: inherit;
         margin-bottom: -1px;
+        white-space: nowrap;
     }
     .tab-btn:hover { color: var(--color-accent); }
     .tab-btn.active {
@@ -63,6 +64,7 @@
         padding: 0.85rem 1rem;
         background: #f8fafc;
         border-bottom: 1px solid var(--color-border);
+        white-space: nowrap;
     }
     .data-table td {
         padding: 0.85rem 1rem;
@@ -77,6 +79,18 @@
         font-size: 0.9rem;
         padding: 1.5rem;
         text-align: center;
+    }
+
+    @media (max-width: 720px) {
+        .page-header { padding: 1.25rem 1.25rem; }
+        /* Four tabs don't fit side by side — let the bar scroll instead
+           of wrapping onto two rows. */
+        .tab-bar {
+            justify-content: flex-start;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .tab-btn { padding: 0.75rem 1rem; }
     }
 </style>
 {% endblock %}
@@ -96,6 +110,7 @@
 
 <!-- USERS -->
 <div class="tab-panel active" id="tab-users">
+    <div class="table-scroll">
     <table class="data-table">
         <tr>
             <th>Name</th>
@@ -125,9 +140,9 @@
             </td>
             <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
             <td>
-                                {% if user.role != 'admin' %}
+                {% if user.role != 'admin' %}
                 <form method="POST" action="{{ url_for('admin_ban_user', user_id=user.id) }}"
-                    data-confirm="{% if user.is_banned %}Unban{% else %}Ban{% endif %} this user?">
+                      data-confirm="{% if user.is_banned %}Unban{% else %}Ban{% endif %} this user?">
                     <button type="submit" class="action-btn{% if user.is_banned %} action-btn-neutral{% endif %}">
                         {% if user.is_banned %}Unban{% else %}Ban{% endif %}
                     </button>
@@ -137,10 +152,12 @@
         </tr>
         {% endfor %}
     </table>
+    </div>
 </div>
 
 <!-- ITEMS -->
 <div class="tab-panel" id="tab-items">
+    <div class="table-scroll">
     <table class="data-table">
         <tr>
             <th>Title</th>
@@ -180,10 +197,12 @@
         </tr>
         {% endfor %}
     </table>
+    </div>
 </div>
 
 <!-- CLAIMS -->
 <div class="tab-panel" id="tab-claims">
+    <div class="table-scroll">
     <table class="data-table">
         <tr>
             <th>Item</th>
@@ -210,10 +229,12 @@
         </tr>
         {% endfor %}
     </table>
+    </div>
 </div>
 
 <!-- FLAGS -->
 <div class="tab-panel" id="tab-flags">
+    <div class="table-scroll">
     <table class="data-table">
         <tr>
             <th>Listing</th>
@@ -239,7 +260,7 @@
             <td>
                 {% if flag.status == 'Open' %}
                 <form method="POST" action="{{ url_for('admin_review_flag', flag_id=flag.id) }}"
-                    data-confirm="Mark this report as reviewed?">
+                      data-confirm="Mark this report as reviewed?">
                     <button type="submit" class="action-btn">Mark Reviewed</button>
                 </form>
                 {% endif %}
@@ -247,6 +268,7 @@
         </tr>
         {% endfor %}
     </table>
+    </div>
 </div>
 {% endblock %}
 
