@@ -95,6 +95,18 @@
         color: var(--color-muted);
         font-size: 0.95rem;
     }
+
+    /* Two columns on tablets, one on phones — three columns on a narrow
+       screen squeezes the titles into single words per line. */
+    @media (max-width: 900px) {
+        .item-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 560px) {
+        .item-grid { grid-template-columns: 1fr; }
+        .item-photo { height: 200px; }
+        .filter-input, .filter-select { flex: 1 1 100%; }
+        .filter-btn { width: 100%; }
+    }
 </style>
 {% endblock %}
 
