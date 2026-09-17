@@ -16,6 +16,10 @@
 <body class="auth-body">
     <div class="page-overlay">
         <div class="auth-card">
+            <img class="auth-logo"
+                 src="{{ url_for('static', filename='images/mmu-logo-wordmark.png') }}"
+                 alt="Multimedia University">
+
             <div class="auth-title">{% block heading %}{% endblock %}</div>
             <div class="auth-subtitle">{% block subheading %}{% endblock %}</div>
 
