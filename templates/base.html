@@ -5,6 +5,68 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}MMU Lost &amp; Found{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* --- Confirmation modal --- */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 20, 40, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            z-index: 1000;
+        }
+        .modal-overlay.open { display: flex; }
+
+        .modal-box {
+            background: var(--color-card-bg);
+            border-radius: 14px;
+            width: 100%;
+            max-width: 400px;
+            padding: 1.75rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        }
+        .modal-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #111827;
+        }
+        .modal-message {
+            font-size: 0.93rem;
+            line-height: 1.5;
+            color: var(--color-muted);
+            margin-bottom: 1.6rem;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 0.6rem;
+            justify-content: flex-end;
+        }
+        .modal-btn {
+            border: none;
+            border-radius: 8px;
+            padding: 0.6rem 1.25rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .modal-btn-cancel {
+            background: #eef2f7;
+            color: #1f2937;
+            border: 1px solid #dde4ec;
+        }
+        .modal-btn-cancel:hover { background: #e2e8f0; }
+        .modal-btn-ok {
+            background: var(--color-accent);
+            color: white;
+        }
+        .modal-btn-ok:hover { background: var(--color-accent-hover); }
+        .modal-btn-ok.danger { background: var(--color-danger); }
+        .modal-btn-ok.danger:hover { background: var(--color-danger-hover); }
+    </style>
     {% block styles %}{% endblock %}
 </head>
 <body class="app-body">
@@ -38,28 +100,93 @@
     </div>
     {% endblock %}
 
+    <!-- Confirmation dialog, shared by every page -->
+    <div class="modal-overlay" id="confirm-modal">
+        <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+            <div class="modal-title" id="confirm-title">Please confirm</div>
+            <div class="modal-message" id="confirm-message"></div>
+            <div class="modal-actions">
+                <button type="button" class="modal-btn modal-btn-cancel" id="confirm-cancel">Cancel</button>
+                <button type="button" class="modal-btn modal-btn-ok" id="confirm-ok">Confirm</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        /* Any element carrying data-confirm asks before it goes through.
-           Works on links, buttons and forms:
+        /* Any element carrying data-confirm asks before it goes through:
              <a href="..." data-confirm="Log out?">Logout</a>
              <form method="POST" data-confirm="Remove this listing?">
-             <button data-confirm="Delete this item?">Delete</button>          */
-        document.addEventListener('click', function (event) {
-            var el = event.target.closest('[data-confirm]');
-            if (!el || el.tagName === 'FORM') return;
-            if (!confirm(el.getAttribute('data-confirm'))) {
+           The dialog above replaces the browser's own confirm() box so the
+           prompt matches the rest of the site. */
+        (function () {
+            var overlay   = document.getElementById('confirm-modal');
+            var message   = document.getElementById('confirm-message');
+            var okBtn     = document.getElementById('confirm-ok');
+            var cancelBtn = document.getElementById('confirm-cancel');
+            var pending   = null;   // what to run if the user confirms
+
+            function isDestructive(el) {
+                var text = (el.textContent || '').toLowerCase();
+                if (el.querySelector && el.querySelector('.btn-danger, .action-btn')) return true;
+                if (el.classList && (el.classList.contains('btn-danger') ||
+                                     el.classList.contains('action-btn'))) return true;
+                return /delete|remove|ban|reject/.test(text);
+            }
+
+            function open(text, destructive, action) {
+                message.textContent = text;
+                okBtn.classList.toggle('danger', !!destructive);
+                pending = action;
+                overlay.classList.add('open');
+                okBtn.focus();
+            }
+
+            function close() {
+                overlay.classList.remove('open');
+                pending = null;
+            }
+
+            okBtn.addEventListener('click', function () {
+                var action = pending;
+                close();
+                if (action) action();
+            });
+
+            cancelBtn.addEventListener('click', close);
+
+            /* Clicking the dark area or pressing Escape cancels. */
+            overlay.addEventListener('click', function (event) {
+                if (event.target === overlay) close();
+            });
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape' && overlay.classList.contains('open')) close();
+            });
+
+            /* Links and standalone buttons */
+            document.addEventListener('click', function (event) {
+                var el = event.target.closest('[data-confirm]');
+                if (!el || el.tagName === 'FORM') return;
                 event.preventDefault();
                 event.stopPropagation();
-            }
-        });
 
-        document.addEventListener('submit', function (event) {
-            var form = event.target.closest('form[data-confirm]');
-            if (!form) return;
-            if (!confirm(form.getAttribute('data-confirm'))) {
+                var href = el.getAttribute('href');
+                open(el.getAttribute('data-confirm'), isDestructive(el), function () {
+                    if (href) window.location.href = href;
+                });
+            });
+
+            /* Forms. form.submit() does not fire this event again, so the
+               dialog cannot loop back on itself. */
+            document.addEventListener('submit', function (event) {
+                var form = event.target.closest('form[data-confirm]');
+                if (!form) return;
                 event.preventDefault();
-            }
-        });
+
+                open(form.getAttribute('data-confirm'), isDestructive(form), function () {
+                    form.submit();
+                });
+            });
+        })();
     </script>
 
     {% block scripts %}{% endblock %}

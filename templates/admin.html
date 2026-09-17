@@ -125,10 +125,10 @@
             </td>
             <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
             <td>
-                {% if user.role != 'admin' %}
+                                {% if user.role != 'admin' %}
                 <form method="POST" action="{{ url_for('admin_ban_user', user_id=user.id) }}"
-                      onsubmit="return confirm('{% if user.is_banned %}Unban{% else %}Ban{% endif %} this user?');">
-                    <button type="submit" class="action-btn">
+                    data-confirm="{% if user.is_banned %}Unban{% else %}Ban{% endif %} this user?">
+                    <button type="submit" class="action-btn{% if user.is_banned %} action-btn-neutral{% endif %}">
                         {% if user.is_banned %}Unban{% else %}Ban{% endif %}
                     </button>
                 </form>
@@ -239,7 +239,7 @@
             <td>
                 {% if flag.status == 'Open' %}
                 <form method="POST" action="{{ url_for('admin_review_flag', flag_id=flag.id) }}"
-                      data-confirm="Mark this report as reviewed?">
+                    data-confirm="Mark this report as reviewed?">
                     <button type="submit" class="action-btn">Mark Reviewed</button>
                 </form>
                 {% endif %}
