@@ -12,8 +12,9 @@ class User(db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(20), default="user")
     is_banned = db.Column(db.Boolean, default=False)
-    reset_token = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    security_question = db.Column(db.String(200), nullable=True)
+    security_answer_hash = db.Column(db.String(255), nullable=True)
 
     items = db.relationship("Item", backref="reporter", lazy=True)
 
