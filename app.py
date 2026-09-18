@@ -424,6 +424,35 @@ def reset_password():
 
     return render_template("reset-password.html", question=user.security_question)
 
+@app.route("/profile")
+@login_required
+def profile():
+    user = current_user()
+    my_items = Item.query.filter_by(user_id=user.id).order_by(Item.created_at.desc()).all()
+    my_claims = Claim.query.filter_by(claimant_id=user.id).order_by(Claim.created_at.desc()).all()
+    return render_template("profile.html", my_items=my_items, my_claims=my_claims)
+
+
+@app.route("/profile/password", methods=["POST"])
+@login_required
+def change_password():
+    user = current_user()
+    current = request.form["current_password"]
+    new = request.form["new_password"]
+    confirm = request.form["confirm_password"]
+
+    if not check_password_hash(user.password_hash, current):
+        flash("Current password is incorrect.")
+        return redirect(url_for("profile"))
+    if new != confirm:
+        flash("New passwords do not match.")
+        return redirect(url_for("profile"))
+
+    user.password_hash = generate_password_hash(new)
+    db.session.commit()
+    flash("Password updated.")
+    return redirect(url_for("profile"))
+
 from werkzeug.exceptions import RequestEntityTooLarge
 
 @app.errorhandler(RequestEntityTooLarge)
