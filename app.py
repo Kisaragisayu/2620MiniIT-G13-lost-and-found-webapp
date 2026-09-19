@@ -13,11 +13,19 @@ app.config["SECRET_KEY"] = "Lost&found2620"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///lostfound.db"
 app.config["UPLOAD_FOLDER"] = os.path.join("static", "uploads")
 app.config["ALLOWED_EXTENSIONS"] = {"png", "jpg", "jpeg", "gif"}
+app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024
 
 db.init_app(app)
 
 LOCATIONS = ["FCI", "FOE", "FCM", "Library", "Arked", "Bus Stop", "Hostel Block", "Sports Complex", "Other"]
 CATEGORIES = ["Student ID / Matric Card", "Wallet", "Phone", "Charger / Cable", "Water Bottle", "Umbrella", "Bag", "Keys", "Other"]
+SECURITY_QUESTIONS = [                                    
+    "What was the name of your first school?",
+    "What is your mother's maiden name?",
+    "What was the name of your first pet?",
+    "What city were you born in?",
+    "Other"
+]
 
 
 def allowed_file(filename):
@@ -84,6 +92,8 @@ def register():
         name = request.form["name"]
         email = request.form["email"].strip().lower()
         password = request.form["password"]
+        security_question = request.form.get("security_question")
+        security_answer = request.form.get("security_answer", "").strip().lower()
 
         if not email.endswith("@student.mmu.edu.my") and not email.endswith("@mmu.edu.my"):
             flash("Registration is only open to MMU emails.")
@@ -93,14 +103,19 @@ def register():
             flash("An account with that email already exists.")
             return redirect(url_for("register"))
 
-        new_user = User(name=name, email=email, password_hash=generate_password_hash(password))
+        new_user = User(
+            name=name,
+            email=email,
+            password_hash=generate_password_hash(password),
+            security_question=security_question,
+            security_answer_hash=generate_password_hash(security_answer),
+        )       
         db.session.add(new_user)
         db.session.commit()
         flash("Account created! Please log in.")
         return redirect(url_for("login"))
 
-    return render_template("register.html")
-
+    return render_template("register.html", questions=SECURITY_QUESTIONS)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -335,6 +350,163 @@ def admin_ban_user(user_id):
         flash(f"{target.name} has been unbanned.")
 
     return redirect(url_for("admin_panel"))
+
+
+@app.route("/item/<int:item_id>/claim", methods=["POST"])
+@login_required
+def submit_claim(item_id):
+    item = Item.query.get_or_404(item_id)
+
+    if item.user_id == session["user_id"]:
+        flash("You can't claim your own listing.")
+        return redirect(url_for("item_detail", item_id=item.id))
+    if item.status != "Active":
+        flash("This item is no longer active.")
+        return redirect(url_for("item_detail", item_id=item.id))
+
+    existing = Claim.query.filter_by(item_id=item.id, claimant_id=session["user_id"]).first()
+    if existing:
+        flash("You have already submitted a claim on this listing.")
+        return redirect(url_for("item_detail", item_id=item.id))
+
+    new_claim = Claim(
+        item_id=item.id,
+        claimant_id=session["user_id"],
+        message=request.form["message"].strip(),
+    )
+    db.session.add(new_claim)
+    db.session.commit()
+    flash("Your claim has been submitted. The reporter will review it.")
+    return redirect(url_for("item_detail", item_id=item.id))
+
+
+@app.route("/claim/<int:claim_id>/approve", methods=["POST"])
+@login_required
+def approve_claim(claim_id):
+    claim = Claim.query.get_or_404(claim_id)
+    item = claim.item
+
+    if item.user_id != session["user_id"]:
+        flash("Only the reporter can approve claims.")
+        return redirect(url_for("item_detail", item_id=item.id))
+
+    claim.status = "Approved"
+    for other in item.claims:
+        if other.id != claim.id and other.status == "Pending":
+            other.status = "Closed"
+
+    item.status = "Resolved"
+    db.session.commit()
+    flash(f"Claim approved. Contact {claim.claimant.name} ({claim.claimant.email}) to arrange handover.")
+    return redirect(url_for("item_detail", item_id=item.id))
+
+
+@app.route("/claim/<int:claim_id>/reject", methods=["POST"])
+@login_required
+def reject_claim(claim_id):
+    claim = Claim.query.get_or_404(claim_id)
+    item = claim.item
+
+    if item.user_id != session["user_id"]:
+        flash("Only the reporter can reject claims.")
+        return redirect(url_for("item_detail", item_id=item.id))
+
+    claim.status = "Rejected"
+    db.session.commit()
+    flash("Claim rejected.")
+    return redirect(url_for("item_detail", item_id=item.id))
+
+
+@app.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+    if request.method == "POST":
+        email = request.form["email"].strip().lower()
+        user = User.query.filter_by(email=email).first()
+
+        if not user or not user.security_question:
+            flash("No account found with that email.")
+            return redirect(url_for("forgot_password"))
+
+        session["reset_email"] = user.email
+        return redirect(url_for("reset_password"))
+
+    return render_template("forgot-password.html")
+
+
+@app.route("/reset-password", methods=["GET", "POST"])
+def reset_password():
+    email = session.get("reset_email")
+    if not email:
+        flash("Start the password reset from the beginning.")
+        return redirect(url_for("forgot_password"))
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        session.pop("reset_email", None)
+        return redirect(url_for("forgot_password"))
+
+    if request.method == "POST":
+        answer = request.form["security_answer"].strip().lower()
+        password = request.form["password"]
+        confirm = request.form["confirm_password"]
+
+        if not check_password_hash(user.security_answer_hash, answer):
+            flash("Incorrect answer.")
+            return redirect(url_for("reset_password"))
+
+        if password != confirm:
+            flash("Passwords do not match.")
+            return redirect(url_for("reset_password"))
+
+        user.password_hash = generate_password_hash(password)
+        db.session.commit()
+        session.pop("reset_email", None)
+        flash("Password updated. Please log in.")
+        return redirect(url_for("login"))
+
+    return render_template("reset-password.html", question=user.security_question)
+
+@app.route("/profile")
+@login_required
+def profile():
+    user = current_user()
+    my_items = Item.query.filter_by(user_id=user.id).order_by(Item.created_at.desc()).all()
+    my_claims = Claim.query.filter_by(claimant_id=user.id).order_by(Claim.created_at.desc()).all()
+    return render_template("profile.html", my_items=my_items, my_claims=my_claims)
+
+
+@app.route("/profile/password", methods=["POST"])
+@login_required
+def change_password():
+    user = current_user()
+    current = request.form["current_password"]
+    new = request.form["new_password"]
+    confirm = request.form["confirm_password"]
+
+    if not check_password_hash(user.password_hash, current):
+        flash("Current password is incorrect.")
+        return redirect(url_for("profile"))
+    if new != confirm:
+        flash("New passwords do not match.")
+        return redirect(url_for("profile"))
+
+    user.password_hash = generate_password_hash(new)
+    db.session.commit()
+    flash("Password updated.")
+    return redirect(url_for("profile"))
+
+from werkzeug.exceptions import RequestEntityTooLarge
+
+@app.errorhandler(RequestEntityTooLarge)
+def file_too_large(e):
+    flash("That photo is too large. Maximum size is 2 MB.")
+    return redirect(url_for("post_item"))
+
+
+if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
+    app.run(debug=True)
 
 
 if __name__ == "__main__":
