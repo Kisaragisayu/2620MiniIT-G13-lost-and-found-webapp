@@ -37,6 +37,18 @@ def current_user():
         return User.query.get(session["user_id"])
     return None
 
+ADMIN_ROLES = ("admin", "superadmin")
+
+
+def require_admin():
+    user = current_user()
+    return user if user and user.role in ADMIN_ROLES else None
+
+
+def require_superadmin():
+    user = current_user()
+    return user if user and user.role == "superadmin" else None
+
 
 def login_required(view_func):
     @wraps(view_func)
@@ -134,8 +146,8 @@ def logout():
 
 @app.route("/admin")
 def admin_panel():
-    user = current_user()
-    if not user or user.role != "admin":
+    user = require_admin()
+    if not user:
         flash("Access denied.")
         return redirect(url_for("home"))
 
@@ -148,8 +160,8 @@ def admin_panel():
 
 @app.route("/admin/item/<int:item_id>/remove", methods=["POST"])
 def admin_remove_item(item_id):
-    user = current_user()
-    if not user or user.role != "admin":
+    user = require_admin()
+    if not user:
         flash("Access denied.")
         return redirect(url_for("home"))
 
@@ -157,6 +169,36 @@ def admin_remove_item(item_id):
     db.session.delete(item)
     db.session.commit()
     flash(f"Listing '{item.title}' has been removed.")
+    return redirect(url_for("admin_panel"))
+
+@app.route("/admin/user/<int:user_id>/role", methods=["POST"])
+def admin_toggle_role(user_id):
+    actor = require_superadmin()
+    if not actor:
+        flash("Only the super admin can change roles.")
+        return redirect(url_for("home"))
+
+    target = User.query.get_or_404(user_id)
+
+    if target.id == actor.id:
+        flash("You cannot change your own role.")
+        return redirect(url_for("admin_panel"))
+
+    if target.role == "superadmin":
+        flash("The super admin's role cannot be changed here.")
+        return redirect(url_for("admin_panel"))
+
+    if target.role == "admin":
+        target.role = "user"
+        flash(f"{target.name} is no longer an admin.")
+    else:
+        if target.is_banned:
+            flash("Unban this account before making it an admin.")
+            return redirect(url_for("admin_panel"))
+        target.role = "admin"
+        flash(f"{target.name} is now an admin.")
+
+    db.session.commit()
     return redirect(url_for("admin_panel"))
 
 
@@ -183,8 +225,8 @@ def flag_item(item_id):
 
 @app.route("/admin/flag/<int:flag_id>/review", methods=["POST"])
 def admin_review_flag(flag_id):
-    user = current_user()
-    if not user or user.role != "admin":
+    user = require_admin()
+    if not user:
         flash("Access denied.")
         return redirect(url_for("home"))
 
@@ -288,14 +330,14 @@ def resolve_item(item_id):
 
 @app.route("/admin/user/<int:user_id>/ban", methods=["POST"])
 def admin_ban_user(user_id):
-    admin = current_user()
-    if not admin or admin.role != "admin":
+    admin = require_admin()
+    if not admin:
         flash("Access denied.")
         return redirect(url_for("home"))
 
     target = User.query.get_or_404(user_id)
 
-    if target.role == "admin":
+    if target.role in ADMIN_ROLES:
         flash("Admin accounts cannot be banned.")
         return redirect(url_for("admin_panel"))
 
