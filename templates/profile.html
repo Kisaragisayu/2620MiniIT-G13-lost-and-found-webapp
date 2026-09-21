@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}My Profile — MMU Lost &amp; Found{% endblock %}
+{% block title %}My Profile MMU Lost &amp; Found{% endblock %}
 {% block container_class %}container-narrow{% endblock %}
 
 {% block styles %}
@@ -184,6 +184,25 @@
         border-bottom: 1px solid var(--color-border);
     }
     .detail-row:last-child { border-bottom: none; }
+
+    .password-card {
+        background: var(--color-card-bg);
+        border: 1px solid var(--color-border);
+        border-radius: 12px;
+        padding: 1.75rem;
+        margin-top: 1.25rem;
+        max-width: 420px;
+    }
+    .password-title {
+        font-size: 1.02rem;
+        font-weight: 700;
+        margin-bottom: 0.4rem;
+    }
+    .password-hint {
+        font-size: 0.85rem;
+        color: var(--color-muted);
+        margin-bottom: 1.25rem;
+    }
     .detail-label {
         color: var(--color-muted);
         font-weight: 600;
@@ -321,6 +340,30 @@
             <span class="detail-label">Member since</span>
             <span>{{ current_user.created_at.strftime('%d %B %Y') }}</span>
         </div>
+    </div>
+
+    <div class="password-card">
+        <div class="password-title">Change password</div>
+        <div class="password-hint">You'll stay logged in after changing it.</div>
+
+        <form method="POST" action="{{ url_for('change_password') }}">
+            <div class="field-group">
+                <label class="form-label">Current Password</label>
+                <input type="password" name="current_password" class="form-input"
+                       placeholder="••••••••" required>
+            </div>
+            <div class="field-group">
+                <label class="form-label">New Password</label>
+                <input type="password" name="new_password" class="form-input"
+                       placeholder="••••••••" required>
+            </div>
+            <div class="field-group">
+                <label class="form-label">Confirm New Password</label>
+                <input type="password" name="confirm_password" class="form-input"
+                       placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn-primary">Update Password</button>
+        </form>
     </div>
 </div>
 {% endblock %}

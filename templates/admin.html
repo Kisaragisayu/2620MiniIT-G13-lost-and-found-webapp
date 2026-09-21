@@ -74,6 +74,14 @@
     .data-table tr:last-child td { border-bottom: none; }
     .data-table form { display: inline; }
 
+    /* Two buttons can end up in the same cell, so they need to sit
+       together without wrapping into the row above. */
+    .row-actions-cell {
+        display: flex;
+        gap: 0.4rem;
+        align-items: center;
+    }
+
     .empty-note {
         color: var(--color-muted);
         font-size: 0.9rem;
@@ -125,7 +133,9 @@
             <td><span class="name-chip">{{ user.name }}</span></td>
             <td>{{ user.email }}</td>
             <td>
-                {% if user.role == 'admin' %}
+                {% if user.role == 'superadmin' %}
+                    <span class="badge badge-admin">Super Admin</span>
+                {% elif user.role == 'admin' %}
                     <span class="badge badge-admin">Admin</span>
                 {% else %}
                     <span class="badge badge-user">User</span>
@@ -140,14 +150,29 @@
             </td>
             <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
             <td>
-                {% if user.role != 'admin' %}
-                <form method="POST" action="{{ url_for('admin_ban_user', user_id=user.id) }}"
-                      data-confirm="{% if user.is_banned %}Unban{% else %}Ban{% endif %} this user?">
-                    <button type="submit" class="action-btn{% if user.is_banned %} action-btn-neutral{% endif %}">
-                        {% if user.is_banned %}Unban{% else %}Ban{% endif %}
-                    </button>
-                </form>
-                {% endif %}
+                <div class="row-actions-cell">
+                    {# Only the super admin can change roles, and never on
+                       their own row or on another super admin. #}
+                    {% if current_user.role == 'superadmin'
+                          and user.id != current_user.id
+                          and user.role != 'superadmin' %}
+                    <form method="POST" action="{{ url_for('admin_toggle_role', user_id=user.id) }}"
+                          data-confirm="{% if user.role == 'admin' %}Remove admin rights from {{ user.name }}?{% else %}Make {{ user.name }} an admin?{% endif %}">
+                        <button type="submit" class="action-btn{% if user.role != 'admin' %} action-btn-neutral{% endif %}">
+                            {% if user.role == 'admin' %}Demote{% else %}Promote{% endif %}
+                        </button>
+                    </form>
+                    {% endif %}
+
+                    {% if user.role == 'user' %}
+                    <form method="POST" action="{{ url_for('admin_ban_user', user_id=user.id) }}"
+                          data-confirm="{% if user.is_banned %}Unban{% else %}Ban{% endif %} this user?">
+                        <button type="submit" class="action-btn{% if user.is_banned %} action-btn-neutral{% endif %}">
+                            {% if user.is_banned %}Unban{% else %}Ban{% endif %}
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
             </td>
         </tr>
         {% endfor %}

@@ -72,12 +72,19 @@
 <body class="app-body">
 
     <nav class="navbar">
-        <a href="{{ url_for('home') }}" class="navbar-brand">MMU Lost &amp; Found</a>
+        <a href="{{ url_for('home') }}" class="navbar-brand">
+            <span class="brand-logo">
+                <img src="{{ url_for('static', filename='images/mmu-mark.png') }}"
+                     alt="Multimedia University">
+            </span>
+            <span class="brand-text">MMU Lost &amp; Found</span>
+        </a>
         <div class="navbar-links">
             <a href="{{ url_for('home') }}" class="btn-outline">Browse</a>
             {% if current_user %}
                 <a href="{{ url_for('post_item') }}" class="btn-outline">+ Post Item</a>
-                {% if current_user.role == 'admin' %}
+                <a href="{{ url_for('profile') }}" class="btn-outline">Profile</a>
+                {% if current_user.role == 'admin' or current_user.role == 'superadmin' %}
                     <a href="{{ url_for('admin_panel') }}" class="btn-outline">Admin</a>
                 {% endif %}
                 <a href="{{ url_for('logout') }}" class="btn-outline"
@@ -127,10 +134,14 @@
 
             function isDestructive(el) {
                 var text = (el.textContent || '').toLowerCase();
-                if (el.querySelector && el.querySelector('.btn-danger, .action-btn')) return true;
+                if (el.querySelector && el.querySelector('.btn-danger, .action-btn')) {
+                    if (!el.querySelector('.action-btn-neutral')) return true;
+                }
                 if (el.classList && (el.classList.contains('btn-danger') ||
-                                     el.classList.contains('action-btn'))) return true;
-                return /delete|remove|ban|reject/.test(text);
+                                     el.classList.contains('action-btn'))) {
+                    if (!el.classList.contains('action-btn-neutral')) return true;
+                }
+                return /delete|remove|\bban\b|reject|demote/.test(text);
             }
 
             function open(text, destructive, action) {

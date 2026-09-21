@@ -262,13 +262,12 @@
 
             {% if claim.status == 'Pending' %}
             <div class="claim-actions">
-                <!-- TODO: Omar's claim routes. Once they exist, point these at
-                     url_for('approve_claim', claim_id=claim.id) and
-                     url_for('reject_claim', claim_id=claim.id). -->
-                <form method="POST" action="#" data-confirm="Approve this claim? Other pending claims will be closed.">
+                <form method="POST" action="{{ url_for('approve_claim', claim_id=claim.id) }}"
+                      data-confirm="Approve this claim? The listing will be marked resolved and the other pending claims closed.">
                     <button type="submit" class="btn-success">Approve</button>
                 </form>
-                <form method="POST" action="#" data-confirm="Reject this claim?">
+                <form method="POST" action="{{ url_for('reject_claim', claim_id=claim.id) }}"
+                      data-confirm="Reject this claim?">
                     <button type="submit" class="btn-danger">Reject</button>
                 </form>
             </div>
@@ -288,8 +287,7 @@
     <div class="section">
         <div class="section-title">Think this is yours?</div>
         <div class="section-hint">Describe a specific detail that isn't in the public description — something only the real owner would know.</div>
-        <!-- TODO: Omar's claim routes. Point this at url_for('submit_claim', item_id=item.id). -->
-        <form action="#" method="POST">
+        <form action="{{ url_for('submit_claim', item_id=item.id) }}" method="POST">
             <textarea name="message" class="form-textarea"
                       placeholder="e.g. there's a dent near the base and a sticker on the side..." required></textarea>
             <button type="submit" class="btn-primary">Submit Claim</button>
