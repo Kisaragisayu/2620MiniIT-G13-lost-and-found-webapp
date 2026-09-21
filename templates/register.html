@@ -4,21 +4,63 @@
 {% block heading %}Create an account{% endblock %}
 {% block subheading %}Registration is open to MMU emails only.{% endblock %}
 
+{% block styles %}
+<style>
+    .security-box {
+        background: #f8fafc;
+        border: 1px dashed var(--color-border);
+        border-radius: 10px;
+        padding: 1.1rem;
+        margin-bottom: 1.25rem;
+    }
+    .security-box .field-group:last-child { margin-bottom: 0; }
+    .security-intro {
+        font-size: 0.82rem;
+        color: var(--color-muted);
+        line-height: 1.45;
+        margin-bottom: 0.9rem;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <form action="{{ url_for('register') }}" method="POST">
     <div class="field-group">
         <label class="auth-label">Full Name</label>
-        <input type="text" name="name" class="auth-input" placeholder="Your full name">
+        <input type="text" name="name" class="auth-input" placeholder="Your full name" required>
     </div>
 
     <div class="field-group">
         <label class="auth-label">MMU Email</label>
-        <input type="email" name="email" class="auth-input" placeholder="you@student.mmu.edu.my">
+        <input type="email" name="email" class="auth-input" placeholder="you@student.mmu.edu.my" required>
     </div>
 
     <div class="field-group">
         <label class="auth-label">Password</label>
-        <input type="password" name="password" class="auth-input" placeholder="••••••••">
+        <input type="password" name="password" class="auth-input" placeholder="••••••••" required>
+    </div>
+
+    <div class="security-box">
+        <div class="security-intro">
+            This is how you recover your account if you forget your password,
+            so pick something you won't forget.
+        </div>
+
+        <div class="field-group">
+            <label class="auth-label">Security Question</label>
+            <select name="security_question" class="auth-input" required>
+                {% for q in questions %}
+                    <option value="{{ q }}">{{ q }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="field-group">
+            <label class="auth-label">Your Answer</label>
+            <input type="text" name="security_answer" class="auth-input"
+                   placeholder="Your answer" required>
+            <div class="field-hint">Capital letters don't matter.</div>
+        </div>
     </div>
 
     <button type="submit" class="auth-btn">Register</button>

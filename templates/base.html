@@ -83,6 +83,7 @@
             <a href="{{ url_for('home') }}" class="btn-outline">Browse</a>
             {% if current_user %}
                 <a href="{{ url_for('post_item') }}" class="btn-outline">+ Post Item</a>
+                <a href="{{ url_for('profile') }}" class="btn-outline">Profile</a>
                 {% if current_user.role == 'admin' or current_user.role == 'superadmin' %}
                     <a href="{{ url_for('admin_panel') }}" class="btn-outline">Admin</a>
                 {% endif %}
