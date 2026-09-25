@@ -5,6 +5,8 @@ from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
+from werkzeug.exceptions import RequestEntityTooLarge
+
 
 from models import db, User, Item, Claim, Flag
 
@@ -495,19 +497,29 @@ def change_password():
     flash("Password updated.")
     return redirect(url_for("profile"))
 
-from werkzeug.exceptions import RequestEntityTooLarge
-
 @app.errorhandler(RequestEntityTooLarge)
 def file_too_large(e):
     flash("That photo is too large. Maximum size is 2 MB.")
     return redirect(url_for("post_item"))
 
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template("404.html"), 404
 
-if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
-    app.run(debug=True)
+@app.route("/profile/name", methods=["POST"])
+@login_required
+def change_name():
+    user = current_user()
+    new_name = request.form["name"].strip()
 
+    if not new_name:
+        flash("Name cannot be empty.")
+        return redirect(url_for("profile"))
+
+    user.name = new_name
+    db.session.commit()
+    flash("Name updated.")
+    return redirect(url_for("profile"))
 
 if __name__ == "__main__":
     with app.app_context():
