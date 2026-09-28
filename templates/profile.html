@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}My Profile MMU Lost &amp; Found{% endblock %}
+{% block title %}My Profile â MMU Lost &amp; Found{% endblock %}
 {% block container_class %}container-narrow{% endblock %}
 
 {% block styles %}
@@ -185,13 +185,28 @@
     }
     .detail-row:last-child { border-bottom: none; }
 
+    .name-form {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+    }
+    .name-form .form-input {
+        width: auto;
+        min-width: 200px;
+        padding: 0.45rem 0.7rem;
+        font-size: 0.92rem;
+    }
+    .name-form .btn-secondary { padding: 0.45rem 1rem; }
+
     .password-card {
         background: var(--color-card-bg);
         border: 1px solid var(--color-border);
         border-radius: 12px;
         padding: 1.75rem;
-        margin-top: 1.25rem;
         max-width: 420px;
+        margin: 0 auto;
     }
     .password-title {
         font-size: 1.02rem;
@@ -237,6 +252,7 @@
     <button class="tab-btn active" onclick="showTab(event, 'listings')">My Listings</button>
     <button class="tab-btn" onclick="showTab(event, 'claims')">My Claims</button>
     <button class="tab-btn" onclick="showTab(event, 'account')">Account</button>
+    <button class="tab-btn" onclick="showTab(event, 'password')">Change Password</button>
 </div>
 
 <!-- MY LISTINGS -->
@@ -320,7 +336,11 @@
     <div class="detail-card">
         <div class="detail-row">
             <span class="detail-label">Full Name</span>
-            <span>{{ current_user.name }}</span>
+            <form class="name-form" method="POST" action="{{ url_for('change_name') }}">
+                <input type="text" name="name" class="form-input"
+                       value="{{ current_user.name }}" required>
+                <button type="submit" class="btn-secondary">Save</button>
+            </form>
         </div>
         <div class="detail-row">
             <span class="detail-label">MMU Email</span>
@@ -329,7 +349,9 @@
         <div class="detail-row">
             <span class="detail-label">Role</span>
             <span>
-                {% if current_user.role == 'admin' %}
+                {% if current_user.role == 'superadmin' %}
+                    <span class="badge badge-admin">Super Admin</span>
+                {% elif current_user.role == 'admin' %}
                     <span class="badge badge-admin">Admin</span>
                 {% else %}
                     <span class="badge badge-user">User</span>
@@ -342,6 +364,10 @@
         </div>
     </div>
 
+</div>
+
+<!-- CHANGE PASSWORD -->
+<div class="tab-panel" id="tab-password">
     <div class="password-card">
         <div class="password-title">Change password</div>
         <div class="password-hint">You'll stay logged in after changing it.</div>
@@ -366,6 +392,7 @@
         </form>
     </div>
 </div>
+
 {% endblock %}
 
 {% block scripts %}

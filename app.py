@@ -5,15 +5,19 @@ from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
+from werkzeug.exceptions import RequestEntityTooLarge
+
 
 from models import db, User, Item, Claim, Flag
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "Lost&found2620"
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-key-local-only")
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///lostfound.db"
-app.config["UPLOAD_FOLDER"] = os.path.join("static", "uploads")
+app.config["UPLOAD_FOLDER"] = os.path.join(app.root_path, "static", "uploads")
 app.config["ALLOWED_EXTENSIONS"] = {"png", "jpg", "jpeg", "gif"}
 app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024
+
+os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
 db.init_app(app)
 
@@ -499,22 +503,36 @@ def change_password():
     flash("Password updated.")
     return redirect(url_for("profile"))
 
-from werkzeug.exceptions import RequestEntityTooLarge
-
 @app.errorhandler(RequestEntityTooLarge)
 def file_too_large(e):
     flash("That photo is too large. Maximum size is 2 MB.")
     return redirect(url_for("post_item"))
 
+@app.errorhandler(403)
+def forbidden(e):
+    return render_template("403.html"), 403
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template("404.html"), 404
+
+@app.route("/profile/name", methods=["POST"])
+@login_required
+def change_name():
+    user = current_user()
+    new_name = request.form["name"].strip()
+
+    if not new_name:
+        flash("Name cannot be empty.")
+        return redirect(url_for("profile"))
+
+    user.name = new_name
+    db.session.commit()
+    flash("Name updated.")
+    return redirect(url_for("profile"))
+
+with app.app_context():
+    db.create_all()
 
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
-    app.run(debug=True)
-
-
-if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
-    app.run(debug=True)
-    
+    app.run()
