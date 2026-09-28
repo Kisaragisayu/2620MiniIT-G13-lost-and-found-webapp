@@ -34,7 +34,11 @@ def allowed_file(filename):
 
 def current_user():
     if "user_id" in session:
-        return User.query.get(session["user_id"])
+        user = User.query.get(session["user_id"])
+        if user and user.is_banned:
+            session.pop("user_id", None)
+            return None
+        return user
     return None
 
 ADMIN_ROLES = ("admin", "superadmin")
