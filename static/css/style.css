@@ -30,7 +30,10 @@ body.app-body {
     background: var(--color-page-bg);
 }
 
-/* Login / register / password pages — the image itself is set in base-auth.html */
+/* Login / register / password pages. The image now sits on .page-overlay,
+   which grows with the form — body does not, which is why a long page used
+   to run out of background and show white. This colour only shows if the
+   image fails to load. */
 body.auth-body {
     background-size: cover;
     background-position: center;
@@ -276,8 +279,47 @@ body.auth-body {
 }
 
 
+/* ---------- Show / hide password ---------- */
+/* The wrapper is created by script, not written in the templates, so the
+   toggle appears on every password field without touching each page. */
+
+.password-field { position: relative; }
+/* Room for the button so long passwords don't run under it */
+.password-field .auth-input,
+.password-field .form-input { padding-right: 2.9rem; }
+
+.password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 0.6rem;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    padding: 0.35rem;
+    cursor: pointer;
+    color: var(--color-muted);
+    display: flex;
+    align-items: center;
+    border-radius: 6px;
+    transition: color 0.15s;
+}
+.password-toggle:hover { color: var(--color-accent); }
+.password-toggle:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 1px;
+}
+.password-toggle svg {
+    width: 20px;
+    height: 20px;
+    display: block;
+}
+
+
 /* ---------- Auth card (login, register, forgot, reset) ---------- */
 
+/* The background image and its dark tint come from base-auth.html, because
+   the path needs url_for. This element is a normal block in the flow, so it
+   stretches to whatever the form needs and the image covers all of it. */
 .page-overlay {
     min-height: 100vh;
     background: rgba(0, 25, 50, 0.55);
@@ -294,22 +336,38 @@ body.auth-body {
     padding: 2.75rem 2.25rem;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
 }
-.auth-logo {
-    display: block;
-    height: 38px;
-    width: auto;
+/* Matches the navbar brand. No white tile here — the card is already
+   white, so the emblem reads on its own. */
+.auth-brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.7rem;
     margin-bottom: 1.5rem;
+    text-decoration: none;
+    color: var(--color-accent);
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: 0.01em;
+}
+.auth-brand img {
+    height: 30px;
+    width: auto;
+    display: block;
+    flex-shrink: 0;
 }
 .auth-title {
     font-size: 1.5rem;
     font-weight: 700;
     margin-bottom: 0.3rem;
     color: #111827;
+    text-align: center;
 }
 .auth-subtitle {
     color: var(--color-muted);
     font-size: 0.9rem;
     margin-bottom: 2rem;
+    text-align: center;
 }
 .label-row {
     display: flex;
