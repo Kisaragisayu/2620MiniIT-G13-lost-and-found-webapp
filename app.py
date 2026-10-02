@@ -14,7 +14,7 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-key-local-only")
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///lostfound.db"
 app.config["UPLOAD_FOLDER"] = os.path.join(app.root_path, "static", "uploads")
-app.config["ALLOWED_EXTENSIONS"] = {"png", "jpg", "jpeg", "gif"}
+app.config["ALLOWED_EXTENSIONS"] = {"png", "jpg", "jpeg", "gif", "webp"}
 app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024
 
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
@@ -256,7 +256,12 @@ def post_item():
 
         image_filename = None
         file = request.files.get("photo")
-        if file and file.filename and allowed_file(file.filename):
+        if file and file.filename:
+            # Skipping the file silently left the listing posted with no photo
+            # and nothing said about it, which reads as the upload having worked.
+            if not allowed_file(file.filename):
+                flash("That image format isn't supported. Use PNG, JPG, GIF or WEBP.")
+                return redirect(url_for("post_item"))
             image_filename = secure_filename(f"{session['user_id']}_{file.filename}")
             file.save(os.path.join(app.config["UPLOAD_FOLDER"], image_filename))
 
