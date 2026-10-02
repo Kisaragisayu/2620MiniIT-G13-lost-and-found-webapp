@@ -17,6 +17,38 @@
         opacity: 0.85;
     }
 
+    /* Summary of what the four tabs add up to. Pending claims and open flags
+       are work waiting on an admin, so those two are coloured; the rest are
+       there for context. */
+    .stat-row {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 0.75rem;
+        margin-bottom: 1.75rem;
+    }
+    .stat-box {
+        background: var(--color-card-bg);
+        border: 1px solid var(--color-border);
+        border-radius: 12px;
+        padding: 1.1rem 1rem;
+        text-align: center;
+    }
+    .stat-number {
+        font-size: 1.6rem;
+        font-weight: 700;
+        line-height: 1.1;
+        margin-bottom: 0.25rem;
+        color: #111827;
+    }
+    .stat-box.needs-action .stat-number { color: var(--color-danger); }
+    .stat-caption {
+        font-size: 0.74rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: var(--color-muted);
+        font-weight: 600;
+    }
+
     .tab-bar {
         display: flex;
         justify-content: center;
@@ -89,6 +121,15 @@
         text-align: center;
     }
 
+    @media (max-width: 860px) {
+        /* Five boxes in a row become unreadable before the navbar breaks */
+        .stat-row { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 520px) {
+        .stat-row { grid-template-columns: repeat(2, 1fr); }
+        .stat-number { font-size: 1.35rem; }
+    }
+
     @media (max-width: 720px) {
         .page-header { padding: 1.25rem 1.25rem; }
         /* Four tabs don't fit side by side — let the bar scroll instead
@@ -107,6 +148,29 @@
 <div class="page-header">
     <div class="page-title">Admin Panel</div>
     <div class="page-subtitle">Manage users, listings, claims and reports across the system.</div>
+</div>
+
+<div class="stat-row">
+    <div class="stat-box">
+        <div class="stat-number">{{ stats.active_items }}</div>
+        <div class="stat-caption">Active</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-number">{{ stats.resolved_items }}</div>
+        <div class="stat-caption">Resolved</div>
+    </div>
+    <div class="stat-box{% if stats.pending_claims %} needs-action{% endif %}">
+        <div class="stat-number">{{ stats.pending_claims }}</div>
+        <div class="stat-caption">Pending Claims</div>
+    </div>
+    <div class="stat-box{% if stats.open_flags %} needs-action{% endif %}">
+        <div class="stat-number">{{ stats.open_flags }}</div>
+        <div class="stat-caption">Open Reports</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-number">{{ stats.banned_users }}</div>
+        <div class="stat-caption">Banned</div>
+    </div>
 </div>
 
 <div class="tab-bar">
