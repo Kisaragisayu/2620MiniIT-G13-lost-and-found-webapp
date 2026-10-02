@@ -179,7 +179,26 @@ def admin_panel():
     items = Item.query.all()
     claims = Claim.query.all()
     flags = Flag.query.order_by(Flag.created_at.desc()).all()
-    return render_template("admin.html", users=users, items=items, claims=claims, flags=flags)
+
+    # Counted from the lists already fetched rather than with five more queries.
+    # The four tabs show every row there is; what an admin actually needs to know
+    # on arrival is how much is waiting on them, which is what these summarise.
+    stats = {
+        "active_items": sum(1 for i in items if i.status == "Active"),
+        "resolved_items": sum(1 for i in items if i.status != "Active"),
+        "pending_claims": sum(1 for c in claims if c.status == "Pending"),
+        "open_flags": sum(1 for f in flags if f.status == "Open"),
+        "banned_users": sum(1 for u in users if u.is_banned),
+    }
+
+    return render_template(
+        "admin.html",
+        users=users,
+        items=items,
+        claims=claims,
+        flags=flags,
+        stats=stats,
+    )
 
 
 @app.route("/admin/item/<int:item_id>/remove", methods=["POST"])
