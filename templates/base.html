@@ -66,6 +66,46 @@
         .modal-btn-ok:hover { background: var(--color-accent-hover); }
         .modal-btn-ok.danger { background: var(--color-danger); }
         .modal-btn-ok.danger:hover { background: var(--color-danger-hover); }
+
+        /* --- Photo lightbox --- */
+        /* Listing photos are cropped to fit their card, so a small item or an
+           off-centre shot can be hard to make out. Clicking opens the file at
+           its own proportions. */
+        [data-zoom] { cursor: zoom-in; }
+
+        .lightbox {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 10, 20, 0.85);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            z-index: 1100;
+        }
+        .lightbox.open { display: flex; }
+        .lightbox img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+        .lightbox-close {
+            position: absolute;
+            top: 1rem;
+            right: 1.25rem;
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 2rem;
+            line-height: 1;
+            cursor: pointer;
+            padding: 0.25rem 0.6rem;
+            border-radius: 8px;
+            font-family: inherit;
+        }
+        .lightbox-close:hover { background: rgba(255, 255, 255, 0.15); }
     </style>
     {% block styles %}{% endblock %}
 </head>
@@ -83,7 +123,15 @@
             <a href="{{ url_for('home') }}" class="btn-outline">Browse</a>
             {% if current_user %}
                 <a href="{{ url_for('post_item') }}" class="btn-outline">+ Post Item</a>
-                <a href="{{ url_for('profile') }}" class="btn-outline">Profile</a>
+                <a href="{{ url_for('profile') }}" class="btn-outline">
+                    Profile
+                    {# Shown only when someone is waiting on an answer from this
+                       user, so an empty badge never sits in the bar. #}
+                    {% if pending_claims %}
+                        <span class="nav-count"
+                              title="{{ pending_claims }} claim{{ '' if pending_claims == 1 else 's' }} waiting for your review">{{ pending_claims }}</span>
+                    {% endif %}
+                </a>
                 {% if current_user.role == 'admin' or current_user.role == 'superadmin' %}
                     <a href="{{ url_for('admin_panel') }}" class="btn-outline">Admin</a>
                 {% endif %}
@@ -97,9 +145,12 @@
 
     {% block body %}
     <div class="container {% block container_class %}{% endblock %}">
-        {% with messages = get_flashed_messages() %}
-            {% for msg in messages %}
-                <div class="flash-message">{{ msg }}</div>
+        {# with_categories keeps success apart from failure — every message
+           used to be styled as an error, so a listing posting correctly
+           looked the same as a rejected one. #}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, msg in messages %}
+                <div class="flash-message flash-{{ category }}">{{ msg }}</div>
             {% endfor %}
         {% endwith %}
 
@@ -117,6 +168,12 @@
                 <button type="button" class="modal-btn modal-btn-ok" id="confirm-ok">Confirm</button>
             </div>
         </div>
+    </div>
+
+    <!-- Photo viewer, shared by every page that shows a listing photo -->
+    <div class="lightbox" id="photo-lightbox">
+        <button type="button" class="lightbox-close" id="lightbox-close" aria-label="Close">&times;</button>
+        <img id="lightbox-image" src="" alt="">
     </div>
 
     <script>
@@ -195,6 +252,77 @@
 
                 open(form.getAttribute('data-confirm'), isDestructive(form), function () {
                     form.submit();
+                });
+            });
+        })();
+    </script>
+
+    <script>
+        /* Opens any image carrying data-zoom at full size. One listener on the
+           document, so photos rendered inside a loop need nothing of their own. */
+        (function () {
+            var box    = document.getElementById('photo-lightbox');
+            var full   = document.getElementById('lightbox-image');
+            var closer = document.getElementById('lightbox-close');
+
+            function close() {
+                box.classList.remove('open');
+                full.src = '';
+                document.body.style.overflow = '';
+            }
+
+            document.addEventListener('click', function (event) {
+                var img = event.target.closest('img[data-zoom]');
+                if (!img) return;
+                /* A thumbnail can sit inside a link — don't follow it. */
+                event.preventDefault();
+
+                full.src = img.getAttribute('src');
+                full.alt = img.getAttribute('alt') || '';
+                box.classList.add('open');
+                /* Stop the page behind from scrolling while the photo is open. */
+                document.body.style.overflow = 'hidden';
+            });
+
+            closer.addEventListener('click', close);
+            box.addEventListener('click', function (event) {
+                if (event.target === box) close();
+            });
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape' && box.classList.contains('open')) close();
+            });
+        })();
+    </script>
+
+    <script>
+        /* Same show/hide toggle as the login pages, so Change Password in the
+           profile behaves like the register form. Both base templates carry
+           their own copy — they share no parent to put it in. */
+        (function () {
+            var eyeOpen = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+            var eyeShut = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+
+            document.querySelectorAll('input[type="password"]').forEach(function (input) {
+                var wrap = document.createElement('div');
+                wrap.className = 'password-field';
+                input.parentNode.insertBefore(wrap, input);
+                wrap.appendChild(input);
+
+                var toggle = document.createElement('button');
+                /* Without type="button" this counts as a submit button and
+                   sends the form on every click. */
+                toggle.type = 'button';
+                toggle.className = 'password-toggle';
+                toggle.setAttribute('aria-label', 'Show password');
+                toggle.innerHTML = eyeOpen;
+                wrap.appendChild(toggle);
+
+                toggle.addEventListener('click', function () {
+                    var hidden = input.type === 'password';
+                    input.type = hidden ? 'text' : 'password';
+                    toggle.innerHTML = hidden ? eyeShut : eyeOpen;
+                    toggle.setAttribute('aria-label', hidden ? 'Hide password' : 'Show password');
+                    input.focus();
                 });
             });
         })();

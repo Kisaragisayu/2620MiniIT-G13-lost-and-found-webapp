@@ -6,26 +6,34 @@
     <title>{% block title %}MMU Lost &amp; Found{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
-        /* The image path needs url_for, so it can't live in style.css */
-        body.auth-body {
-            background-image: url("{{ url_for('static', filename='images/campus.jpg') }}");
-        }
+    /* The image path needs url_for, so it can't live in style.css */
+    body.auth-body {
+        background-image: url("{{ url_for('static', filename='images/campus.jpg') }}");
+    }
     </style>
     {% block styles %}{% endblock %}
 </head>
 <body class="auth-body">
     <div class="page-overlay">
         <div class="auth-card">
-            <img class="auth-logo"
-                 src="{{ url_for('static', filename='images/mmu-logo-wordmark.png') }}"
-                 alt="Multimedia University">
+            {# Same emblem and wording as the navbar, so the login pages read as
+               part of the site rather than a separate university page. It links
+               back to the listings — visitors can browse without an account. #}
+            <a class="auth-brand" href="{{ url_for('home') }}">
+                <img src="{{ url_for('static', filename='images/mmu-mark.png') }}"
+                     alt="Multimedia University">
+                <span>MMU Lost &amp; Found</span>
+            </a>
 
             <div class="auth-title">{% block heading %}{% endblock %}</div>
             <div class="auth-subtitle">{% block subheading %}{% endblock %}</div>
 
-            {% with messages = get_flashed_messages() %}
-                {% for msg in messages %}
-                    <div class="flash-message">{{ msg }}</div>
+            {# with_categories keeps success apart from failure — every message
+               used to be styled as an error, so a listing posting correctly
+               looked the same as a rejected one. #}
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for category, msg in messages %}
+                    <div class="flash-message flash-{{ category }}">{{ msg }}</div>
                 {% endfor %}
             {% endwith %}
 
@@ -34,5 +42,40 @@
             <div class="auth-footer">{% block footer %}{% endblock %}</div>
         </div>
     </div>
+
+    <script>
+        /* Adds a show/hide toggle to every password field on the page. Done
+           here rather than in each template so login, register and reset all
+           get it from one place — reset has two password fields and picks up
+           a toggle on both. */
+        (function () {
+            var eyeOpen = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+            var eyeShut = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+
+            document.querySelectorAll('input[type="password"]').forEach(function (input) {
+                var wrap = document.createElement('div');
+                wrap.className = 'password-field';
+                input.parentNode.insertBefore(wrap, input);
+                wrap.appendChild(input);
+
+                var toggle = document.createElement('button');
+                /* Without type="button" this counts as a submit button and
+                   sends the form on every click. */
+                toggle.type = 'button';
+                toggle.className = 'password-toggle';
+                toggle.setAttribute('aria-label', 'Show password');
+                toggle.innerHTML = eyeOpen;
+                wrap.appendChild(toggle);
+
+                toggle.addEventListener('click', function () {
+                    var hidden = input.type === 'password';
+                    input.type = hidden ? 'text' : 'password';
+                    toggle.innerHTML = hidden ? eyeShut : eyeOpen;
+                    toggle.setAttribute('aria-label', hidden ? 'Hide password' : 'Show password');
+                    input.focus();
+                });
+            });
+        })();
+    </script>
 </body>
 </html>
