@@ -70,7 +70,23 @@ def login_required(view_func):
 
 @app.context_processor
 def inject_user():
-    return {"current_user": current_user()}
+    user = current_user()
+
+    # Claims waiting on this user's own listings. Without a count in the navbar
+    # the author only finds out someone claimed their item by opening the
+    # listing and checking, which can take days on a service meant to return
+    # property quickly. Claims the user has made themselves are a different
+    # thing — those wait on somebody else — so they are not counted here.
+    pending_claims = 0
+    if user:
+        pending_claims = (
+            Claim.query
+            .join(Item, Claim.item_id == Item.id)
+            .filter(Item.user_id == user.id, Claim.status == "Pending")
+            .count()
+        )
+
+    return {"current_user": user, "pending_claims": pending_claims}
 
 
 @app.route("/")

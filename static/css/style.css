@@ -30,10 +30,7 @@ body.app-body {
     background: var(--color-page-bg);
 }
 
-/* Login / register / password pages. The image now sits on .page-overlay,
-   which grows with the form — body does not, which is why a long page used
-   to run out of background and show white. This colour only shows if the
-   image fails to load. */
+/* Login / register / password pages — the image itself is set in base-auth.html */
 body.auth-body {
     background-size: cover;
     background-position: center;
@@ -98,6 +95,25 @@ body.auth-body {
     white-space: nowrap;
 }
 .btn-outline:hover { background: rgba(255, 255, 255, 0.12); }
+
+/* Count of claims waiting on the user's own listings. Orange rather than the
+   navbar's own blue, so it reads as something to attend to. */
+.nav-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 19px;
+    height: 19px;
+    padding: 0 0.3rem;
+    margin-left: 0.35rem;
+    border-radius: 999px;
+    background: var(--color-danger);
+    color: #ffffff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1;
+    vertical-align: middle;
+}
 
 .btn-white {
     background: white;
@@ -317,9 +333,6 @@ body.auth-body {
 
 /* ---------- Auth card (login, register, forgot, reset) ---------- */
 
-/* The background image and its dark tint come from base-auth.html, because
-   the path needs url_for. This element is a normal block in the flow, so it
-   stretches to whatever the form needs and the image covers all of it. */
 .page-overlay {
     min-height: 100vh;
     background: rgba(0, 25, 50, 0.55);

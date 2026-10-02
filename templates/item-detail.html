@@ -40,6 +40,40 @@
         object-fit: cover;
         display: block;
     }
+
+    /* The photo is cropped to fit this box, so it needs to say that there is
+       more to see. The badge sits in the corner at rest; hovering dims the
+       photo so the cue is unmistakable. */
+    .item-photo.has-photo { position: relative; }
+    .item-photo.has-photo::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 20, 40, 0);
+        transition: background 0.15s;
+        pointer-events: none;
+    }
+    .item-photo.has-photo:hover::after { background: rgba(0, 20, 40, 0.25); }
+
+    .zoom-hint {
+        position: absolute;
+        right: 0.7rem;
+        bottom: 0.7rem;
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        background: rgba(0, 20, 40, 0.6);
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        /* Clicks belong to the image underneath. */
+        pointer-events: none;
+        transition: background 0.15s;
+        z-index: 1;
+    }
+    .item-photo.has-photo:hover .zoom-hint { background: rgba(0, 20, 40, 0.85); }
+    .zoom-hint svg { width: 18px; height: 18px; display: block; }
     .info-card {
         background: var(--color-card-bg);
         border: 1px solid var(--color-border);
@@ -169,12 +203,15 @@
 <a href="{{ url_for('home') }}" class="back-link">&larr; Back to listings</a>
 
 <div class="detail-grid">
-    <div class="item-photo">
+    <div class="item-photo{% if item.image_filename %} has-photo{% endif %}">
         {% if item.image_filename %}
             {# data-zoom opens the file at full size — the card crops it, and a
                cropped photo is a poor way to recognise your own property. #}
             <img src="{{ url_for('static', filename='uploads/' ~ item.image_filename) }}"
                  alt="{{ item.title }}" data-zoom>
+            <span class="zoom-hint" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+            </span>
         {% else %}
             No photo
         {% endif %}
