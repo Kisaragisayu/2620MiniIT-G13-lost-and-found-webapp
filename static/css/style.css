@@ -107,7 +107,7 @@ body.auth-body {
     padding: 0 0.3rem;
     margin-left: 0.35rem;
     border-radius: 999px;
-    background: var(--color-danger);
+    background: #f97316;
     color: #ffffff;
     font-size: 0.72rem;
     font-weight: 700;
@@ -146,14 +146,33 @@ body.auth-body {
 
 /* ---------- Flash messages ---------- */
 
+/* Shared shape. The colour comes from the category Flask passes with the
+   message, so a successful action no longer arrives in the red of a failure. */
 .flash-message {
-    background: #fef2f2;
-    border: 1px solid #fecaca;
-    color: #b91c1c;
     border-radius: 8px;
     padding: 0.7rem 0.9rem;
     font-size: 0.85rem;
     margin-bottom: 1.25rem;
+    border: 1px solid transparent;
+}
+
+/* Default, for any message sent without a category */
+.flash-message {
+    background: #eef2f7;
+    border-color: #dde4ec;
+    color: #1f2937;
+}
+
+.flash-error {
+    background: #c62828;
+    border-color: #c62828;
+    color: #ffffff;
+}
+
+.flash-success {
+    background: #15803d;
+    border-color: #15803d;
+    color: #ffffff;
 }
 
 

@@ -145,9 +145,12 @@
 
     {% block body %}
     <div class="container {% block container_class %}{% endblock %}">
-        {% with messages = get_flashed_messages() %}
-            {% for msg in messages %}
-                <div class="flash-message">{{ msg }}</div>
+        {# with_categories keeps success apart from failure — every message
+           used to be styled as an error, so a listing posting correctly
+           looked the same as a rejected one. #}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, msg in messages %}
+                <div class="flash-message flash-{{ category }}">{{ msg }}</div>
             {% endfor %}
         {% endwith %}
 
