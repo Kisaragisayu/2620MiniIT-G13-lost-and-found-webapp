@@ -171,8 +171,10 @@
 <div class="detail-grid">
     <div class="item-photo">
         {% if item.image_filename %}
+            {# data-zoom opens the file at full size — the card crops it, and a
+               cropped photo is a poor way to recognise your own property. #}
             <img src="{{ url_for('static', filename='uploads/' ~ item.image_filename) }}"
-                 alt="{{ item.title }}">
+                 alt="{{ item.title }}" data-zoom>
         {% else %}
             No photo
         {% endif %}
