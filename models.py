@@ -55,5 +55,7 @@ class Flag(db.Model):
     status = db.Column(db.String(20), default="Open")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    item = db.relationship("Item", backref="flags")
+    # Reports go with the item, same as claims. Without the cascade,
+    # deleting an item tries to null out item_id, which the column forbids.
+    item = db.relationship("Item", backref=db.backref("flags", cascade="all, delete-orphan"))
     reporter = db.relationship("User", foreign_keys=[reporter_id])
