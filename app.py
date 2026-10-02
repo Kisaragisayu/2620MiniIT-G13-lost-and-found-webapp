@@ -14,7 +14,7 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-key-local-only")
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///lostfound.db"
 app.config["UPLOAD_FOLDER"] = os.path.join(app.root_path, "static", "uploads")
-app.config["ALLOWED_EXTENSIONS"] = {"png", "jpg", "jpeg", "gif"}
+app.config["ALLOWED_EXTENSIONS"] = {"png", "jpg", "jpeg", "gif", "webp"}
 app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024
 
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
@@ -70,7 +70,23 @@ def login_required(view_func):
 
 @app.context_processor
 def inject_user():
-    return {"current_user": current_user()}
+    user = current_user()
+
+    # Claims waiting on this user's own listings. Without a count in the navbar
+    # the author only finds out someone claimed their item by opening the
+    # listing and checking, which can take days on a service meant to return
+    # property quickly. Claims the user has made themselves are a different
+    # thing — those wait on somebody else — so they are not counted here.
+    pending_claims = 0
+    if user:
+        pending_claims = (
+            Claim.query
+            .join(Item, Claim.item_id == Item.id)
+            .filter(Item.user_id == user.id, Claim.status == "Pending")
+            .count()
+        )
+
+    return {"current_user": user, "pending_claims": pending_claims}
 
 
 @app.route("/")
@@ -256,7 +272,12 @@ def post_item():
 
         image_filename = None
         file = request.files.get("photo")
-        if file and file.filename and allowed_file(file.filename):
+        if file and file.filename:
+            # Skipping the file silently left the listing posted with no photo
+            # and nothing said about it, which reads as the upload having worked.
+            if not allowed_file(file.filename):
+                flash("That image format isn't supported. Use PNG, JPG, GIF or WEBP.")
+                return redirect(url_for("post_item"))
             image_filename = secure_filename(f"{session['user_id']}_{file.filename}")
             file.save(os.path.join(app.config["UPLOAD_FOLDER"], image_filename))
 
