@@ -164,15 +164,15 @@ body.auth-body {
 }
 
 .flash-error {
-    background: #fef2f2;
-    border-color: #fecaca;
-    color: #b91c1c;
+    background: #c62828;
+    border-color: #c62828;
+    color: #ffffff;
 }
 
 .flash-success {
-    background: #f0fdf4;
-    border-color: #bbf7d0;
-    color: #15803d;
+    background: #15803d;
+    border-color: #15803d;
+    color: #ffffff;
 }
 
 
