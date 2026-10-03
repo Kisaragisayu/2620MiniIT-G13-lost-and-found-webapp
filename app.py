@@ -2,7 +2,7 @@ import os
 from datetime import date
 from functools import wraps
 
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, abort 
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from werkzeug.exceptions import RequestEntityTooLarge
@@ -172,8 +172,8 @@ def logout():
 def admin_panel():
     user = require_admin()
     if not user:
-        flash("Access denied.", "error")
-        return redirect(url_for("home"))
+        abort(403) 
+
 
     users = User.query.all()
     items = Item.query.all()
@@ -205,8 +205,7 @@ def admin_panel():
 def admin_remove_item(item_id):
     user = require_admin()
     if not user:
-        flash("Access denied.", "error")
-        return redirect(url_for("home"))
+        abort(403)
 
     item = Item.query.get_or_404(item_id)
     db.session.delete(item)
@@ -218,8 +217,7 @@ def admin_remove_item(item_id):
 def admin_toggle_role(user_id):
     actor = require_superadmin()
     if not actor:
-        flash("Only the super admin can change roles.", "error")
-        return redirect(url_for("home"))
+        abort(403) 
 
     target = User.query.get_or_404(user_id)
 
@@ -270,8 +268,7 @@ def flag_item(item_id):
 def admin_review_flag(flag_id):
     user = require_admin()
     if not user:
-        flash("Access denied.", "error")
-        return redirect(url_for("home"))
+        abort(403)
 
     flag = Flag.query.get_or_404(flag_id)
     flag.status = "Reviewed"
@@ -380,8 +377,7 @@ def resolve_item(item_id):
 def admin_ban_user(user_id):
     admin = require_admin()
     if not admin:
-        flash("Access denied.", "error")
-        return redirect(url_for("home"))
+        abort(403)
 
     target = User.query.get_or_404(user_id)
 
